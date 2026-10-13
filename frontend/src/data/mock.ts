@@ -1,0 +1,100 @@
+import type { Destination, Tour, TravelStyle } from "@/types";
+
+export const photos = {
+  hero: "https://images.unsplash.com/photo-1577971132997-c10be9372519?auto=format&fit=crop&w=2200&q=88",
+  elephant: "https://images.unsplash.com/photo-1603483080228-04f2313d9f10?auto=format&fit=crop&w=1200&q=85",
+  coast: "https://images.unsplash.com/photo-1634646350433-fe03ad698448?auto=format&fit=crop&w=1200&q=85",
+  patagonia: "https://images.unsplash.com/photo-1637580980556-085dee659c7e?auto=format&fit=crop&w=1200&q=85",
+  mountain: "https://images.unsplash.com/photo-1494783329112-4a6795291178?auto=format&fit=crop&w=1200&q=85",
+  road: "https://images.unsplash.com/photo-1700455160321-88cbb18c25f7?auto=format&fit=crop&w=1200&q=85",
+  island: "https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?auto=format&fit=crop&w=1200&q=85",
+  safari: "https://images.unsplash.com/photo-1765706729858-76ae4bcd2f41?auto=format&fit=crop&w=1200&q=85",
+  lodge: "https://images.unsplash.com/photo-1535941339077-2dd1c7963098?auto=format&fit=crop&w=1200&q=85",
+};
+
+export const tours: Tour[] = [
+  {
+    slug: "great-migration",
+    title: "The Great Migration, Privately",
+    place: "Tanzania & Kenya",
+    days: "12 days",
+    price: "$9,850",
+    rating: "4.9",
+    reviews: 124,
+    image: photos.hero,
+    tag: "Signature journey",
+  },
+  {
+    slug: "zanzibar-slow-island",
+    title: "Zanzibar: Slow Island Living",
+    place: "Tanzania",
+    days: "8 days",
+    price: "$5,240",
+    rating: "4.8",
+    reviews: 86,
+    image: photos.coast,
+    tag: "Coastal escape",
+  },
+  {
+    slug: "patagonia-beyond-map",
+    title: "Patagonia Beyond the Map",
+    place: "Chile & Argentina",
+    days: "11 days",
+    price: "$7,690",
+    rating: "4.9",
+    reviews: 102,
+    image: photos.patagonia,
+    tag: "Small group",
+  },
+  {
+    slug: "okavango-elephants",
+    title: "Elephants of the Okavango",
+    place: "Botswana",
+    days: "10 days",
+    price: "$8,420",
+    rating: "4.9",
+    reviews: 74,
+    image: photos.elephant,
+    tag: "Wildlife",
+  },
+  {
+    slug: "torres-del-paine",
+    title: "Torres del Paine on Foot",
+    place: "Chile",
+    days: "9 days",
+    price: "$6,280",
+    rating: "4.7",
+    reviews: 61,
+    image: photos.mountain,
+    tag: "Adventure",
+  },
+  {
+    slug: "wild-road-south",
+    title: "The Wild Road South",
+    place: "Argentina",
+    days: "14 days",
+    price: "$8,960",
+    rating: "4.9",
+    reviews: 48,
+    image: photos.road,
+    tag: "New",
+  },
+];
+
+export const travelStyles: TravelStyle[] = [
+  { title: "Safari", description: "Unscripted encounters in the wild", image: photos.elephant },
+  { title: "Coastal", description: "Days shaped by the rhythm of the sea", image: photos.coast },
+  { title: "Cultural", description: "Stories, traditions and local tables", image: photos.lodge },
+  { title: "Adventure", description: "Go further under your own power", image: photos.patagonia },
+  { title: "Family", description: "Big memories for every generation", image: photos.safari },
+  { title: "Honeymoon", description: "Extraordinary places, just for two", image: photos.island },
+  { title: "Small Group", description: "Share the road with kindred spirits", image: photos.road },
+  { title: "Tailor-Made", description: "Designed entirely around you", image: photos.mountain },
+];
+
+export const destinations: Destination[] = [
+  { name: "East Africa", journeyCount: "36 journeys", image: photos.hero },
+  { name: "Southern Africa", journeyCount: "24 journeys", image: photos.elephant },
+  { name: "Latin America", journeyCount: "18 journeys", image: photos.patagonia },
+  { name: "Indian Ocean", journeyCount: "12 journeys", image: photos.island },
+];
