@@ -1,0 +1,5 @@
+INSERT INTO destinations (id, slug, name, image_url, journey_count, display_order, created_at, updated_at, version) VALUES
+('22222222-2222-2222-2222-222222222201', 'east-africa',     'East Africa',     'https://images.unsplash.com/photo-1577971132997-c10be9372519?auto=format&fit=crop&w=1200&q=85', 36, 1, now(), now(), 0),
+('22222222-2222-2222-2222-222222222202', 'southern-africa', 'Southern Africa', 'https://images.unsplash.com/photo-1603483080228-04f2313d9f10?auto=format&fit=crop&w=1200&q=85', 24, 2, now(), now(), 0),
+('22222222-2222-2222-2222-222222222203', 'latin-america',   'Latin America',   'https://images.unsplash.com/photo-1637580980556-085dee659c7e?auto=format&fit=crop&w=1200&q=85', 18, 3, now(), now(), 0),
+('22222222-2222-2222-2222-222222222204', 'indian-ocean',    'Indian Ocean',    'https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?auto=format&fit=crop&w=1200&q=85', 12, 4, now(), now(), 0);
