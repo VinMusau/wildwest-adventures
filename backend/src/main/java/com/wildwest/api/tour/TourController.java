@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -33,5 +34,10 @@ public class TourController {
                 destination, style, minPrice, maxPrice,
                 minDays, maxDays, q, featured, sort
         ));
+    }
+
+    @GetMapping("/{slug}")
+    public TourDetailDto bySlug(@PathVariable String slug) {
+        return service.getBySlug(slug);
     }
 }

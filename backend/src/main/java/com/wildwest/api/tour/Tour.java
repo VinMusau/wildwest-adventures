@@ -10,6 +10,8 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 @Getter
 @Setter
@@ -64,4 +66,17 @@ public class Tour extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "style_id")
     )
     private Set<TravelStyle> styles = new HashSet<>();
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("dayNumber ASC")
+    private List<TourItineraryDay> itineraryDays = new ArrayList<>();
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<TourInclusion> inclusions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<TourImage> images = new ArrayList<>();
+
 }

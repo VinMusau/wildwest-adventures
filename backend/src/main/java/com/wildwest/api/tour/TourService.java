@@ -4,6 +4,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -47,5 +49,17 @@ public class TourService {
             case "duration-desc" -> Sort.by("durationDays").descending();
             default              -> Sort.by("displayOrder").ascending();
         };
+    }
+
+    public TourDetailDto getBySlug(String slug) {
+        Tour tour = repository.findBySlugWithBasicDetails(slug)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found"));
+
+        // Force lazy collections to load while we're still inside the transaction.
+        tour.getItineraryDays().size();
+        tour.getInclusions().size();
+        tour.getImages().size();
+
+        return TourDetailDto.from(tour);
     }
 }
