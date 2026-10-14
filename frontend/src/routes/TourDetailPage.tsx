@@ -3,42 +3,60 @@ import { Link, useParams } from "react-router";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import Icon from "@/components/ui/Icon";
-import Button from "@/components/ui/Button";
 import Rating from "@/components/ui/Rating";
 import SectionHead from "@/components/tour/SectionHead";
 import TourCard from "@/components/tour/TourCard";
 import BookingCard from "@/components/tour/BookingCard";
+import { useTour } from "@/features/tours/useTour";
 import { useTours } from "@/features/tours/useTours";
-import { photos } from "@/data/mock";
-
-const ITINERARY = [
-  ["Arrival in Arusha", "Settle into a peaceful coffee estate beneath Mount Meru."],
-  ["Into the Serengeti", "Fly into the wild heart of the Serengeti for your first game drive."],
-  ["Following the herds", "A full day tracking the migration with your private naturalist."],
-  ["The Maasai Mara", "Cross into Kenya and settle into a secluded riverside camp."],
-];
-
-const INCLUSIONS = [
-  "Private guiding and game drives",
-  "Handpicked luxury accommodation",
-  "All internal flights and transfers",
-  "Daily meals and selected drinks",
-  "24/7 in-country support",
-];
-
-const FACTS: Array<[string, string]> = [
-  ["clock", "12 days"],
-  ["users", "2–8 guests"],
-  ["pin", "6 locations"],
-  ["star", "Easy pace"],
-];
+import { formatPrice } from "@/lib/format";
 
 export default function TourDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { data: tour, isLoading, error } = useTour(slug);
   const [openDay, setOpenDay] = useState<number>(1);
 
-  // Phase 1: fetch tour by slug. For now, use the first tour as a placeholder.
-  const tour = tours.find((t) => t.slug === slug) ?? tours[0];
+  const { data: related = [] } = useTours(
+    tour ? { destination: tour.destinationSlug } : {}
+  );
+
+  if (isLoading) {
+    return (
+      <main className="light-page">
+        <Nav />
+        <div className="detail-layout">
+          <p className="text-muted">Loading journey…</p>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
+  if (error || !tour) {
+    return (
+      <main className="light-page">
+        <Nav />
+        <div className="detail-layout">
+          <div>
+            <h1>Journey not found</h1>
+            <p className="text-muted">
+              The journey you're looking for doesn't exist or has been moved.
+            </p>
+            <Link to="/journeys" className="button primary">
+              Back to all journeys
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
+  const gallery = tour.images.length > 0
+    ? tour.images
+    : [{ imageUrl: tour.imageUrl, altText: tour.title }];
+
+  const relatedTours = related.filter((t) => t.slug !== tour.slug).slice(0, 3);
 
   return (
     <main className="light-page">
@@ -60,42 +78,55 @@ export default function TourDetailPage() {
           <h1>{tour.title}</h1>
         </div>
         <div>
-          <Rating value={tour.rating} reviews={tour.reviews} />
-          <p>{tour.days} · Private journey</p>
+          <Rating value={tour.rating.toFixed(1)} reviews={tour.reviewCount} />
+          <p>
+            {tour.durationDays} days · Private journey
+          </p>
         </div>
       </section>
 
       <section className="gallery">
-        <img src={photos.hero} alt="Elephants crossing the Serengeti" />
-        <img src={photos.safari} alt="Safari game drive" />
-        <img src={photos.elephant} alt="Elephant on the savannah" />
-        <button>View all 28 photos</button>
+        {gallery.slice(0, 3).map((img, i) => (
+          <img key={i} src={img.imageUrl} alt={img.altText ?? tour.title} />
+        ))}
+        {tour.images.length > 3 && (
+          <button>View all {tour.images.length} photos</button>
+        )}
       </section>
 
       <div className="detail-layout">
         <div className="detail-main">
           <p className="lead">
-            Follow the rhythm of the wild across two extraordinary countries —
-            from the quiet drama of the Serengeti to the abundant plains of the
-            Maasai Mara.
+            A thoughtfully crafted journey through {tour.place}, private
+            throughout and unhurried by design.
           </p>
 
           <div className="facts">
-            {FACTS.map(([icon, text]) => (
-              <div key={text}>
-                <Icon name={icon as never} />
-                <span>{text}</span>
-              </div>
-            ))}
+            <div>
+              <Icon name="clock" />
+              <span>{tour.durationDays} days</span>
+            </div>
+            <div>
+              <Icon name="users" />
+              <span>2–8 guests</span>
+            </div>
+            <div>
+              <Icon name="pin" />
+              <span>{tour.destinationName}</span>
+            </div>
+            <div>
+              <Icon name="star" />
+              <span>Easy pace</span>
+            </div>
           </div>
 
           <section className="content-section">
             <span className="eyebrow">The experience</span>
-            <h2>Wild Africa, at your own pace.</h2>
+            <h2>Wild places, at your own pace.</h2>
             <p>
               Wake to the sound of the bush, spend unhurried days with expert
-              guides and return each evening to intimate camps chosen for their
-              character and sense of place.
+              guides and return each evening to intimate camps chosen for
+              their character and sense of place.
             </p>
             <div className="highlights">
               <div>
@@ -115,21 +146,33 @@ export default function TourDetailPage() {
 
           <section className="content-section">
             <span className="eyebrow">Your itinerary</span>
-            <h2>Twelve days, one remarkable story.</h2>
-            {ITINERARY.map(([title, description], i) => {
-              const day = i + 1;
-              const isOpen = openDay === day;
+            <h2>
+              {tour.durationDays} days, one remarkable story.
+            </h2>
+            {tour.itinerary.map((day) => {
+              const isOpen = openDay === day.dayNumber;
               return (
-                <div className={`accordion ${isOpen ? "open" : ""}`} key={title}>
-                  <button onClick={() => setOpenDay(isOpen ? 0 : day)}>
-                    <span>DAY {String(day).padStart(2, "0")}</span>
-                    <strong>{title}</strong>
+                <div
+                  className={`accordion ${isOpen ? "open" : ""}`}
+                  key={day.dayNumber}
+                >
+                  <button
+                    onClick={() => setOpenDay(isOpen ? 0 : day.dayNumber)}
+                  >
+                    <span>DAY {String(day.dayNumber).padStart(2, "0")}</span>
+                    <strong>{day.title}</strong>
                     <Icon name="down" />
                   </button>
                   {isOpen && (
                     <div>
-                      <p>{description}</p>
-                      <span>Accommodation: Legendary Lodge · Meals included</span>
+                      <p>{day.description}</p>
+                      {(day.accommodation || day.mealsIncluded) && (
+                        <span>
+                          {day.accommodation && `Accommodation: ${day.accommodation}`}
+                          {day.accommodation && day.mealsIncluded && " · "}
+                          {day.mealsIncluded}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -143,7 +186,7 @@ export default function TourDetailPage() {
               <h2>What's included</h2>
             </div>
             <ul>
-              {INCLUSIONS.map((item) => (
+              {tour.inclusions.map((item) => (
                 <li key={item}>
                   <Icon name="check" />
                   {item}
@@ -153,21 +196,29 @@ export default function TourDetailPage() {
           </section>
         </div>
 
-        <BookingCard priceFrom={tour.price} bookHref={`/book/${tour.slug}`} />
+        <BookingCard
+          priceFrom={formatPrice(tour.priceCents, tour.currency)}
+          bookHref={`/book/${tour.slug}`}
+        />
       </div>
 
-      <section className="section related">
-        <SectionHead eyebrow="Continue exploring" title="You might also like" />
-        <div className="tour-grid">
-          {tours.slice(1, 4).map((t) => (
-            <TourCard key={t.slug} tour={t} />
-          ))}
-        </div>
-      </section>
+      {relatedTours.length > 0 && (
+        <section className="section related">
+          <SectionHead
+            eyebrow="Continue exploring"
+            title="You might also like"
+          />
+          <div className="tour-grid">
+            {relatedTours.map((t) => (
+              <TourCard key={t.slug} tour={t} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="mobile-book">
         <span>
-          From <strong>{tour.price}</strong>
+          From <strong>{formatPrice(tour.priceCents, tour.currency)}</strong>
         </span>
         <Link to={`/book/${tour.slug}`} className="button primary">
           Check availability

@@ -40,6 +40,25 @@ export interface Health {
   timestamp: string;
 }
 
+export interface ItineraryDay {
+  dayNumber: number;
+  title: string;
+  description: string;
+  accommodation: string | null;
+  mealsIncluded: string | null;
+}
+
+export interface TourImage {
+  imageUrl: string;
+  altText: string | null;
+}
+
+export interface TourDetail extends Tour {
+  itinerary: ItineraryDay[];
+  inclusions: string[];
+  images: TourImage[];
+}
+
 export type IconName =
   | "arrow"
   | "chevron"
