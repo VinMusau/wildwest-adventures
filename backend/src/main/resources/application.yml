@@ -29,3 +29,8 @@ logging:
   level:
     org.flywaydb: INFO
     org.hibernate.SQL: DEBUG
+
+wildwest:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-hours: ${JWT_EXPIRATION_HOURS}
