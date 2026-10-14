@@ -20,9 +20,12 @@ export interface TravelStyle {
 }
 
 export interface Destination {
+  id: string;
+  slug: string;
   name: string;
-  journeyCount: string;
-  image: string;
+  imageUrl: string;
+  journeyCount: number;
+  displayOrder: number;
 }
 
 export interface Health {

@@ -1,4 +1,4 @@
-import type { Destination, Tour } from "@/types";
+import type { Tour } from "@/types";
 
 export const photos = {
   hero: "https://images.unsplash.com/photo-1577971132997-c10be9372519?auto=format&fit=crop&w=2200&q=88",
@@ -79,13 +79,4 @@ export const tours: Tour[] = [
     image: photos.road,
     tag: "New",
   },
-];
-
-
-
-export const destinations: Destination[] = [
-  { name: "East Africa", journeyCount: "36 journeys", image: photos.hero },
-  { name: "Southern Africa", journeyCount: "24 journeys", image: photos.elephant },
-  { name: "Latin America", journeyCount: "18 journeys", image: photos.patagonia },
-  { name: "Indian Ocean", journeyCount: "12 journeys", image: photos.island },
 ];

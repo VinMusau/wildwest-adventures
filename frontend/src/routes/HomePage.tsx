@@ -6,8 +6,9 @@ import Rating from "@/components/ui/Rating";
 import SectionHead from "@/components/tour/SectionHead";
 import SearchBox from "@/components/tour/SearchBox";
 import TourCard from "@/components/tour/TourCard";
-import { destinations, photos, tours } from "@/data/mock";
+import { photos, tours } from "@/data/mock";
 import { useTravelStyles } from "@/features/travel-styles/useTravelStyles";
+import { useDestinations } from "@/features/destinations/useDestinations";
 
 export default function HomePage() {
   const scrollToStyles = () => {
@@ -15,10 +16,14 @@ export default function HomePage() {
   };
 
   const { data: travelStyles = [], isLoading: stylesLoading } = useTravelStyles();
+  const { data: destinations = [], isLoading: destinationsLoading } = useDestinations();
 
   return (
     <main>
-      <section className="hero" style={{ backgroundImage: `url(${photos.hero})` }}>
+      <section
+        className="hero"
+        style={{ backgroundImage: `url(${photos.hero})` }}
+      >
         <Nav light />
         <div className="hero-scrim" />
         <div className="hero-content">
@@ -129,26 +134,32 @@ export default function HomePage() {
           action="All destinations"
         />
         <div className="destination-grid">
-          {destinations.map((destination) => (
-            <button
-              className="destination"
-              style={{ backgroundImage: `url(${destination.image})` }}
-              key={destination.name}
-            >
-              <span />
-              <div>
-                <small>{destination.journeyCount}</small>
-                <strong>{destination.name}</strong>
-                <Icon name="arrow" />
-              </div>
-            </button>
-          ))}
+          {destinationsLoading ? (
+            <p className="text-muted">Loading destinations…</p>
+          ) : (
+            destinations.map((destination) => (
+              <button
+                className="destination"
+                style={{ backgroundImage: `url(${destination.imageUrl})` }}
+                key={destination.slug}
+              >
+                <span />
+                <div>
+                  <small>{destination.journeyCount} journeys</small>
+                  <strong>{destination.name}</strong>
+                  <Icon name="arrow" />
+                </div>
+              </button>
+            ))
+          )}
         </div>
       </section>
 
       <section className="quote-section">
         <span className="quote-mark">"</span>
-        <blockquote>They didn't just show us Africa. They made us feel part of it.</blockquote>
+        <blockquote>
+          They didn't just show us The Maasai Mara. They made us feel part of it.
+        </blockquote>
         <p>
           Every detail felt effortless, every day held something we could never
           have planned ourselves.
@@ -167,9 +178,15 @@ export default function HomePage() {
           </h2>
         </div>
         <div>
-          <p>Stories from the road, new journeys and places worth knowing about.</p>
+          <p>
+            Stories from the road, new journeys and places worth knowing about.
+          </p>
           <form onSubmit={(e) => e.preventDefault()}>
-            <input type="email" placeholder="Your email address" aria-label="Email address" />
+            <input
+              type="email"
+              placeholder="Your email address"
+              aria-label="Email address"
+            />
             <Button type="submit">
               Sign me up <Icon name="arrow" />
             </Button>
