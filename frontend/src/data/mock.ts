@@ -1,4 +1,4 @@
-import type { Destination, Tour, TravelStyle } from "@/types";
+import type { Destination, Tour } from "@/types";
 
 export const photos = {
   hero: "https://images.unsplash.com/photo-1577971132997-c10be9372519?auto=format&fit=crop&w=2200&q=88",
@@ -81,16 +81,7 @@ export const tours: Tour[] = [
   },
 ];
 
-export const travelStyles: TravelStyle[] = [
-  { title: "Safari", description: "Unscripted encounters in the wild", image: photos.elephant },
-  { title: "Coastal", description: "Days shaped by the rhythm of the sea", image: photos.coast },
-  { title: "Cultural", description: "Stories, traditions and local tables", image: photos.lodge },
-  { title: "Adventure", description: "Go further under your own power", image: photos.patagonia },
-  { title: "Family", description: "Big memories for every generation", image: photos.safari },
-  { title: "Honeymoon", description: "Extraordinary places, just for two", image: photos.island },
-  { title: "Small Group", description: "Share the road with kindred spirits", image: photos.road },
-  { title: "Tailor-Made", description: "Designed entirely around you", image: photos.mountain },
-];
+
 
 export const destinations: Destination[] = [
   { name: "East Africa", journeyCount: "36 journeys", image: photos.hero },

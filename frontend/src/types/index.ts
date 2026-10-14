@@ -11,9 +11,12 @@ export interface Tour {
 }
 
 export interface TravelStyle {
+  id: string;
+  slug: string;
   title: string;
   description: string;
-  image: string;
+  imageUrl: string;
+  displayOrder: number;
 }
 
 export interface Destination {

@@ -6,12 +6,15 @@ import Rating from "@/components/ui/Rating";
 import SectionHead from "@/components/tour/SectionHead";
 import SearchBox from "@/components/tour/SearchBox";
 import TourCard from "@/components/tour/TourCard";
-import { destinations, photos, tours, travelStyles } from "@/data/mock";
+import { destinations, photos, tours } from "@/data/mock";
+import { useTravelStyles } from "@/features/travel-styles/useTravelStyles";
 
 export default function HomePage() {
   const scrollToStyles = () => {
     document.getElementById("styles")?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const { data: travelStyles = [], isLoading: stylesLoading } = useTravelStyles();
 
   return (
     <main>
@@ -46,20 +49,24 @@ export default function HomePage() {
           copy="However you imagine your time away, we'll make it deeply personal and entirely unforgettable."
         />
         <div className="style-grid">
-          {travelStyles.map((style, index) => (
-            <button
-              className={`style-card ${index < 2 ? "large" : ""}`}
-              key={style.title}
-              style={{ backgroundImage: `url(${style.image})` }}
-            >
-              <span className="image-shade" />
-              <span className="style-content">
-                <small>0{index + 1}</small>
-                <strong>{style.title}</strong>
-                <em>{style.description}</em>
-              </span>
-            </button>
-          ))}
+          {stylesLoading ? (
+            <p className="text-muted">Loading styles…</p>
+          ) : (
+            travelStyles.map((style, index) => (
+              <button
+                className={`style-card ${index < 2 ? "large" : ""}`}
+                key={style.slug}
+                style={{ backgroundImage: `url(${style.imageUrl})` }}
+              >
+                <span className="image-shade" />
+                <span className="style-content">
+                  <small>0{style.displayOrder}</small>
+                  <strong>{style.title}</strong>
+                  <em>{style.description}</em>
+                </span>
+              </button>
+            ))
+          )}
         </div>
       </section>
 
