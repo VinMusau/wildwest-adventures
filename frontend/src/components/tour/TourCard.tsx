@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import Icon from "@/components/ui/Icon";
 import Rating from "@/components/ui/Rating";
+import { formatPrice } from "@/lib/format";
 import type { Tour } from "@/types";
 
 interface TourCardProps {
@@ -14,7 +15,7 @@ export default function TourCard({ tour }: TourCardProps) {
   return (
     <article className="tour-card">
       <div className="tour-image">
-        <img src={tour.image} alt={tour.title} />
+        <img src={tour.imageUrl} alt={tour.title} />
         <span className="tag">{tour.tag}</span>
         <button
           className={`heart ${saved ? "saved" : ""}`}
@@ -27,15 +28,15 @@ export default function TourCard({ tour }: TourCardProps) {
       <div className="tour-body">
         <div className="eyebrow-row">
           <span>{tour.place}</span>
-          <Rating value={tour.rating} reviews={tour.reviews} />
+          <Rating value={tour.rating.toFixed(1)} reviews={tour.reviewCount} />
         </div>
         <h3>{tour.title}</h3>
         <div className="tour-meta">
           <span>
-            <Icon name="clock" size={17} /> {tour.days}
+            <Icon name="clock" size={17} /> {tour.durationDays} days
           </span>
           <span>
-            From <strong>{tour.price}</strong>
+            From <strong>{formatPrice(tour.priceCents, tour.currency)}</strong>
           </span>
         </div>
         <Link to={`/journeys/${tour.slug}`} className="text-link">

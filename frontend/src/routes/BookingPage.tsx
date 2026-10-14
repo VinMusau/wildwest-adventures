@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import Nav from "@/components/layout/Nav";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
-import { photos, tours } from "@/data/mock";
+import { photos } from "@/data/mock";
 
 const STEPS = ["Dates & travellers", "Your details", "Make it yours", "Review & pay"];
 

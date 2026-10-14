@@ -8,7 +8,8 @@ import Rating from "@/components/ui/Rating";
 import SectionHead from "@/components/tour/SectionHead";
 import TourCard from "@/components/tour/TourCard";
 import BookingCard from "@/components/tour/BookingCard";
-import { photos, tours } from "@/data/mock";
+import { useTours } from "@/features/tours/useTours";
+import { photos } from "@/data/mock";
 
 const ITINERARY = [
   ["Arrival in Arusha", "Settle into a peaceful coffee estate beneath Mount Meru."],

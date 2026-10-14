@@ -1,13 +1,19 @@
 export interface Tour {
+  id: string;
   slug: string;
   title: string;
   place: string;
-  days: string;
-  price: string;
-  rating: string;
-  reviews: number;
-  image: string;
+  destinationSlug: string;
+  destinationName: string;
+  durationDays: number;
+  priceCents: number;
+  currency: string;
+  rating: number;
+  reviewCount: number;
   tag: string;
+  imageUrl: string;
+  featured: boolean;
+  styleSlugs: string[];
 }
 
 export interface TravelStyle {

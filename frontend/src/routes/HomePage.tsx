@@ -6,9 +6,10 @@ import Rating from "@/components/ui/Rating";
 import SectionHead from "@/components/tour/SectionHead";
 import SearchBox from "@/components/tour/SearchBox";
 import TourCard from "@/components/tour/TourCard";
-import { photos, tours } from "@/data/mock";
+import { photos } from "@/data/mock";
 import { useTravelStyles } from "@/features/travel-styles/useTravelStyles";
 import { useDestinations } from "@/features/destinations/useDestinations";
+import { useTours } from "@/features/tours/useTours";
 
 export default function HomePage() {
   const scrollToStyles = () => {
@@ -17,7 +18,7 @@ export default function HomePage() {
 
   const { data: travelStyles = [], isLoading: stylesLoading } = useTravelStyles();
   const { data: destinations = [], isLoading: destinationsLoading } = useDestinations();
-
+  const { data: featuredTours = [], isLoading: toursLoading } = useTours({ featured: true });
   return (
     <main>
       <section
@@ -83,9 +84,13 @@ export default function HomePage() {
           action="View all journeys"
         />
         <div className="tour-grid">
-          {tours.slice(0, 3).map((tour) => (
-            <TourCard tour={tour} key={tour.slug} />
-          ))}
+          {toursLoading ? (
+            <p className="text-muted">Loading tours…</p>
+          ) : (
+            featuredTours
+              .slice(0, 3)
+              .map((tour) => <TourCard tour={tour} key={tour.slug} />)
+          )}
         </div>
       </section>
 
@@ -158,7 +163,8 @@ export default function HomePage() {
       <section className="quote-section">
         <span className="quote-mark">"</span>
         <blockquote>
-          They didn't just show us The Maasai Mara. They made us feel part of it.
+          They didn't just show us The Maasai Mara. They made us feel part of
+          it.
         </blockquote>
         <p>
           Every detail felt effortless, every day held something we could never
