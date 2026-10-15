@@ -11,14 +11,15 @@ import ToursPage from "@/routes/ToursPage";
 import TourDetailPage from "@/routes/TourDetailPage";
 import BookingPage from "@/routes/BookingPage";
 import ConfirmationPage from "@/routes/ConfirmationPage";
+import LoginPage from "@/routes/LoginPage";
+import RegisterPage from "@/routes/RegisterPage";
 import HealthBadge from "@/components/dev/HealthBadge";
+import { AuthProvider } from "@/features/auth/AuthContext";
+import ProtectedRoute from "@/features/auth/ProtectedRoute";
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      staleTime: 60_000,
-      retry: 1,
-    },
+    queries: { staleTime: 60_000, retry: 1 },
   },
 });
 
@@ -32,21 +33,39 @@ function ScrollToTop() {
 
 export default function App() {
   useEffect(() => {
-    document.title = "Wild West — Private Journeys";
+    document.title = "Wild West Adventures";
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/journeys" element={<ToursPage />} />
-          <Route path="/journeys/:slug" element={<TourDetailPage />} />
-          <Route path="/book/:slug" element={<BookingPage />} />
-          <Route path="/confirmed/:reference" element={<ConfirmationPage />} />
-        </Routes>
-        <HealthBadge />
+        <AuthProvider>
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/journeys" element={<ToursPage />} />
+            <Route path="/journeys/:slug" element={<TourDetailPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/book/:slug"
+              element={
+                <ProtectedRoute>
+                  <BookingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/confirmed/:reference"
+              element={
+                <ProtectedRoute>
+                  <ConfirmationPage />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+          <HealthBadge />
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
