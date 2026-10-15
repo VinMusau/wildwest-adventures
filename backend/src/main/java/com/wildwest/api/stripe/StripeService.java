@@ -5,6 +5,7 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 import com.wildwest.api.booking.Booking;
 import com.wildwest.api.booking.BookingRepository;
+import com.wildwest.api.payment.PaymentProvider;
 import com.wildwest.api.user.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,41 +17,43 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class PaymentService {
+public class StripeService implements PaymentProvider {
 
     private final BookingRepository bookingRepository;
 
-    public PaymentService(BookingRepository bookingRepository) {
+    public StripeService(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
     }
 
+    @Override
+    public String name() {
+        return "STRIPE";
+    }
+
+    @Override
     @Transactional
-    public PaymentIntentDto createIntent(User user, String reference) {
-        Booking booking = bookingRepository.findByReference(reference)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
-
-        if (!booking.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found");
-        }
-
+    public InitResult initialize(User user, Booking booking) {
         if (booking.getStatus() != Booking.Status.PENDING) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Booking is not awaiting payment");
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "Booking is not awaiting payment");
+        }
+        if (booking.getExpiresAt() != null
+                && booking.getExpiresAt().isBefore(Instant.now())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "Booking hold has expired");
         }
 
-        if (booking.getExpiresAt() != null && booking.getExpiresAt().isBefore(Instant.now())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Booking hold has expired");
-        }
-
-        // Reuse if one already exists and is still usable
+        // Reuse existing intent if still usable
         if (booking.getStripePaymentIntentId() != null) {
             try {
-                PaymentIntent existing = PaymentIntent.retrieve(booking.getStripePaymentIntentId());
+                PaymentIntent existing =
+                        PaymentIntent.retrieve(booking.getStripePaymentIntentId());
                 if ("requires_payment_method".equals(existing.getStatus())
                         || "requires_confirmation".equals(existing.getStatus())) {
-                    return new PaymentIntentDto(existing.getClientSecret());
+                    return InitResult.stripe(existing.getClientSecret());
                 }
-            } catch (StripeException e) {
-                // fall through and create a new one
+            } catch (StripeException ignored) {
+                // fall through to create a new one
             }
         }
 
@@ -66,7 +69,8 @@ public class PaymentService {
                             PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
                                     .setEnabled(true)
                                     .setAllowRedirects(
-                                            PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
+                                            PaymentIntentCreateParams.AutomaticPaymentMethods
+                                                    .AllowRedirects.NEVER)
                                     .build()
                     )
                     .putAllMetadata(metadata)
@@ -75,18 +79,13 @@ public class PaymentService {
                     .build();
 
             PaymentIntent intent = PaymentIntent.create(params);
-
             booking.setStripePaymentIntentId(intent.getId());
+            booking.setPaymentProvider("STRIPE");
             bookingRepository.save(booking);
-
-            return new PaymentIntentDto(intent.getClientSecret());
+            return InitResult.stripe(intent.getClientSecret());
         } catch (StripeException e) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_GATEWAY,
-                    "Stripe error: " + e.getMessage()
-            );
+                    HttpStatus.BAD_GATEWAY, "Stripe error: " + e.getMessage());
         }
     }
-
-    public record PaymentIntentDto(String clientSecret) {}
 }

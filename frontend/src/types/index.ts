@@ -142,8 +142,13 @@ export interface CreateBookingInput {
   addons: string[];
 }
 
-export interface PaymentIntentResponse {
-  clientSecret: string;
+export type PaymentProvider = "STRIPE" | "PAYSTACK";
+
+export interface PaymentInitResponse {
+  provider: PaymentProvider;
+  reference: string | null;   // Paystack transaction reference
+  clientKey: string | null;   // Stripe client secret
+  accessCode: string | null;  // Paystack access_code for popup resume
 }
 
 export type IconName =

@@ -41,4 +41,6 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     List<Booking> findExpiredPending(@Param("now") Instant now);
 
     Optional<Booking> findByStripePaymentIntentId(String paymentIntentId);
+    
+    Optional<Booking> findByPaystackReference(String paystackReference);
 }

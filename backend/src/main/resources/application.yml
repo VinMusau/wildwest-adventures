@@ -39,3 +39,13 @@ wildwest:
     secret-key: ${STRIPE_SECRET_KEY}
     publishable-key: ${STRIPE_PUBLISHABLE_KEY}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+
+  paystack:
+    secret-key: ${PAYSTACK_SECRET_KEY}
+    public-key: ${PAYSTACK_PUBLIC_KEY}
+    webhook-secret: ${PAYSTACK_WEBHOOK_SECRET}
+    currency: ${PAYSTACK_CURRENCY}
+    usd-to-kes-rate: ${USD_TO_KES_RATE}
+  
+  payment:
+    default-provider: ${PAYMENT_DEFAULT_PROVIDER}

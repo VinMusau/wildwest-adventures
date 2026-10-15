@@ -30,6 +30,7 @@ dependencies {
 	implementation 'org.postgresql:postgresql'
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	implementation 'com.stripe:stripe-java:32.2.0'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
 
 	compileOnly 'org.projectlombok:lombok'
 

@@ -10,6 +10,7 @@
     "format": "oxfmt"
   },
   "dependencies": {
+    "@alexasomba/paystack-inline": "^1.12.0",
     "@stripe/react-stripe-js": "^7.0.0",
     "@stripe/stripe-js": "^10.1.0",
     "@tanstack/react-query": "^5.59.0",

@@ -1,19 +1,20 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { Elements } from "@stripe/react-stripe-js";
+// import { Elements } from "@stripe/react-stripe-js";
 import Nav from "@/components/layout/Nav";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import { useTour } from "@/features/tours/useTour";
 import { useAvailability } from "@/features/booking/useAvailability";
 import { useCreateBooking } from "@/features/booking/useCreateBooking";
-import { usePaymentIntent } from "@/features/booking/usePaymentIntent";
-import PaymentForm from "@/features/booking/PaymentForm";
+import { usePaymentInit } from "@/features/booking/usePaymentInit";
+import PaystackPayment from "@/features/booking/PaystackPayment";
+// import PaymentForm from "@/features/booking/PaymentForm";
 import { useAuth } from "@/features/auth/AuthContext";
 import { formatPrice } from "@/lib/format";
 import { ApiError } from "@/lib/api";
-import { stripePromise } from "@/lib/stripe";
-import type { Availability, Booking, TravelerType } from "@/types";
+// import { stripePromise } from "@/lib/stripe";
+import type { Availability, Booking, PaymentInitResponse, TravelerType } from "@/types";
 
 const STEPS = ["Dates & travellers", "Your details", "Make it yours", "Review & pay"];
 
@@ -57,9 +58,9 @@ export default function BookingPage() {
   const { data: availability = [], isLoading: availLoading } = useAvailability(slug);
   
   const createBooking = useCreateBooking();
-  const paymentIntent = usePaymentIntent();
+  const paymentInit = usePaymentInit();
   const [pendingBooking, setPendingBooking] = useState<Booking | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentData, setPaymentData] = useState<PaymentInitResponse | null>(null);
 
   const [step, setStep] = useState(1);
   const [draft, setDraft] = useState<Draft>(() => ({
@@ -124,7 +125,7 @@ export default function BookingPage() {
     if (!draft.departureDate || !tour) return;
     if (pendingBooking) return; // PaymentForm handles it from here
 
-    createBooking.mutate(
+        createBooking.mutate(
       {
         tourSlug: tour.slug,
         departureDate: draft.departureDate,
@@ -135,8 +136,8 @@ export default function BookingPage() {
       {
         onSuccess: (booking) => {
           setPendingBooking(booking);
-          paymentIntent.mutate(booking.reference, {
-            onSuccess: (pi) => setClientSecret(pi.clientSecret),
+          paymentInit.mutate(booking.reference, {
+            onSuccess: (data) => setPaymentData(data),
             onError: (err) => {
               setError(
                 err instanceof ApiError ? err.message : "Could not start payment"
@@ -367,7 +368,7 @@ export default function BookingPage() {
             </>
           )}
 
-          {step === 4 && (
+                    {step === 4 && (
             <>
               <span className="eyebrow">Step 4 of 4</span>
               <h1>Review & pay</h1>
@@ -384,7 +385,7 @@ export default function BookingPage() {
                     <strong>Ready to reserve</strong>
                     <p style={{ fontSize: 13, color: "var(--muted)" }}>
                       Click "Reserve my place" to lock in your departure. You'll
-                      then enter payment details on this step.
+                      then choose how to pay.
                     </p>
                   </div>
                   {error && (
@@ -395,62 +396,53 @@ export default function BookingPage() {
                 </>
               )}
 
-              {pendingBooking && !clientSecret && (
+              {pendingBooking && !paymentData && (
                 <p className="text-muted">Preparing secure payment…</p>
               )}
 
-              {pendingBooking && clientSecret && stripePromise && (
-                <Elements
-                  stripe={stripePromise}
-                  options={{
-                    clientSecret,
-                    appearance: {
-                      theme: "stripe",
-                      variables: {
-                        colorPrimary: "#B4552D",
-                        fontFamily: "DM Sans, system-ui, sans-serif",
-                        borderRadius: "8px",
-                      },
-                    },
+              {pendingBooking && paymentData?.provider === "PAYSTACK" && paymentData.accessCode && (
+                <PaystackPayment
+                  accessCode={paymentData.accessCode}
+                  amountLabel={formatPrice(
+                    pendingBooking.totalCents,
+                    pendingBooking.currency
+                  )}
+                  onSuccess={() => {
+                    // Webhook will confirm; give it a beat then navigate
+                    setTimeout(() => {
+                      navigate(`/confirmed/${pendingBooking.reference}`, {
+                        replace: true,
+                      });
+                    }, 1500);
                   }}
-                >
-                  <PaymentForm
-                    amountLabel={formatPrice(pendingBooking.totalCents, pendingBooking.currency)}
-                    onSuccess={() => {
-                      // The webhook flips the booking to CONFIRMED.
-                      // Give it a beat so the status is fresh, then navigate.
-                      setTimeout(() => {
-                        navigate(`/confirmed/${pendingBooking.reference}`, {
-                          replace: true,
-                        });
-                      }, 1500);
-                    }}
-                  />
-                </Elements>
+                  onCancel={() => {
+                    setError("Payment was cancelled. Your place is still held.");
+                  }}
+                />
               )}
 
-              {pendingBooking && clientSecret && !stripePromise && (
+              {pendingBooking && paymentData?.provider === "STRIPE" && paymentData.clientKey && (
                 <p className="form-error">
-                  Stripe is not configured. Set VITE_STRIPE_PUBLISHABLE_KEY in
-                  frontend/.env and restart the dev server.
+                  Stripe flow not wired in this build. Set PAYMENT_DEFAULT_PROVIDER=PAYSTACK
+                  in the backend .env.
                 </p>
               )}
             </>
           )}
 
-                    <div className="form-actions">
-            {step > 1 && !clientSecret && (
+          <div className="form-actions">
+            {step > 1 && !paymentData && (
               <Button variant="ghost" onClick={() => setStep(step - 1)}>
                 Back
               </Button>
             )}
-            {!clientSecret && (
+            {!paymentData && (
               <Button
                 onClick={next}
-                disabled={!canProceed || createBooking.isPending || paymentIntent.isPending}
+                disabled={!canProceed || createBooking.isPending || paymentInit.isPending}
               >
                 {step === 4
-                  ? createBooking.isPending || paymentIntent.isPending
+                  ? createBooking.isPending || paymentInit.isPending
                     ? "Reserving…"
                     : "Reserve my place"
                   : "Continue"}{" "}

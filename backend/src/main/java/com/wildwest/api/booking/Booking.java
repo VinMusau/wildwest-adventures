@@ -95,4 +95,10 @@ public class Booking extends BaseEntity {
 
     @Column(name = "payment_method", length = 40)
     private String paymentMethod;
+
+    @Column(name = "paystack_reference", length = 120)
+    private String paystackReference;
+
+    @Column(name = "payment_provider", length = 20)
+    private String paymentProvider = "STRIPE";
 }
