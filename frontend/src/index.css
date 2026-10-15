@@ -90,3 +90,59 @@ a.logo {
   font-size: 13px; cursor: pointer; padding: 0;
 }
 .nav-links > a:not(.button) { text-decoration: none; }
+
+.departure-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 26px 0;
+}
+.departure-card {
+  border: 1px solid var(--line);
+  background: white;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.departure-card strong { font-size: 13px; }
+.departure-card small { font-size: 10px; color: var(--muted); }
+.departure-card span { font-size: 12px; color: var(--terracotta); font-weight: 600; margin-top: 4px; }
+.departure-card:hover:not(:disabled) { border-color: var(--terracotta); }
+.departure-card.active { border-color: var(--terracotta); background: #fff9f5; }
+.departure-card.sold-out { opacity: 0.5; cursor: not-allowed; }
+
+.bookings-list { display: flex; flex-direction: column; gap: 16px; }
+.booking-row {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: 24px;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+.booking-row img { width: 140px; height: 100px; object-fit: cover; border-radius: 8px; }
+.booking-row h3 { font-family: var(--serif); font-size: 22px; margin: 6px 0; }
+.booking-row p { font-size: 12px; margin: 0; }
+.booking-row-price { text-align: right; }
+.booking-row-price > span { display: block; font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+.booking-row-price .text-link { font-size: 12px; }
+.status-badge {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 8px; border-radius: 999px;
+}
+.status-pending   { background: #fff3e0; color: #b4552d; }
+.status-confirmed { background: #e2eee6; color: #3f7a5a; }
+.status-cancelled { background: #f5e6e6; color: #8f3f1e; }
+.status-expired   { background: #eee; color: #6b6560; }
+@media (max-width: 720px) {
+  .booking-row { grid-template-columns: 1fr; text-align: left; }
+  .booking-row img { width: 100%; height: 180px; }
+  .booking-row-price { text-align: left; }
+}

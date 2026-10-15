@@ -74,6 +74,74 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface Availability {
+  id: string;
+  date: string;              // ISO date
+  capacity: number;
+  booked: number;
+  remaining: number;
+  priceCents: number;
+  currency: string;
+  status: "OPEN" | "CLOSED" | "CANCELLED";
+}
+
+export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "EXPIRED";
+export type TravelerType = "ADULT" | "CHILD";
+
+export interface BookingTraveler {
+  id?: string;
+  firstName: string;
+  lastName: string;
+  travelerType: TravelerType;
+}
+
+export interface BookingAddon {
+  id?: string;
+  code: string;
+  label: string;
+  priceCents: number;
+}
+
+export interface Booking {
+  id: string;
+  reference: string;
+  status: BookingStatus;
+  tourSlug: string;
+  tourTitle: string;
+  tourPlace: string;
+  tourImageUrl: string;
+  departureDate: string;
+  travelersCount: number;
+  priceCentsPerPerson: number;
+  subtotalCents: number;
+  addonsTotalCents: number;
+  totalCents: number;
+  currency: string;
+  leadFirstName: string;
+  leadLastName: string;
+  leadEmail: string;
+  leadPhone: string | null;
+  leadCountry: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  travelers: BookingTraveler[];
+  addons: BookingAddon[];
+}
+
+export interface CreateBookingInput {
+  tourSlug: string;
+  departureDate: string;
+  travelers: Array<{ firstName: string; lastName: string; travelerType: TravelerType }>;
+  lead: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    country?: string;
+  };
+  addons: string[];
+}
+
 export type IconName =
   | "arrow"
   | "chevron"

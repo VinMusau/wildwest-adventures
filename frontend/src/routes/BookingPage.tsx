@@ -1,31 +1,145 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import Nav from "@/components/layout/Nav";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
-import { photos } from "@/data/mock";
+import { useTour } from "@/features/tours/useTour";
+import { useAvailability } from "@/features/booking/useAvailability";
+import { useCreateBooking } from "@/features/booking/useCreateBooking";
+import { useAuth } from "@/features/auth/AuthContext";
+import { formatPrice } from "@/lib/format";
+import { ApiError } from "@/lib/api";
+import type { Availability, TravelerType } from "@/types";
 
 const STEPS = ["Dates & travellers", "Your details", "Make it yours", "Review & pay"];
 
-const ADDONS: Array<[string, string, string]> = [
-  ["Private airport transfer", "A seamless welcome from the moment you land.", "$180"],
-  ["Comprehensive travel cover", "Peace of mind for every part of your journey.", "$320"],
-  ["Hot-air balloon safari", "See the Serengeti come alive from above.", "$620"],
+const ADDON_OPTIONS: Array<{ code: string; label: string; description: string; priceCents: number }> = [
+  { code: "airport-transfer", label: "Private airport transfer", description: "A seamless welcome from the moment you land.", priceCents: 18000 },
+  { code: "travel-cover",     label: "Comprehensive travel cover", description: "Peace of mind for every part of your journey.", priceCents: 32000 },
+  { code: "balloon-safari",   label: "Hot-air balloon safari", description: "See the Serengeti come alive from above.", priceCents: 62000 },
 ];
+
+interface Draft {
+  departureDate: string | null;
+  travelersCount: number;
+  travelerDetails: Array<{ firstName: string; lastName: string; travelerType: TravelerType }>;
+  lead: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    country: string;
+  };
+  addons: string[];
+}
+
+const INITIAL: Draft = {
+  departureDate: null,
+  travelersCount: 2,
+  travelerDetails: [
+    { firstName: "", lastName: "", travelerType: "ADULT" },
+    { firstName: "", lastName: "", travelerType: "ADULT" },
+  ],
+  lead: { firstName: "", lastName: "", email: "", phone: "", country: "United States" },
+  addons: [],
+};
 
 export default function BookingPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const { user } = useAuth();
 
-  const tour = tours.find((t) => t.slug === slug) ?? tours[0];
+  const { data: tour, isLoading: tourLoading } = useTour(slug);
+  const { data: availability = [], isLoading: availLoading } = useAvailability(slug);
+  const createBooking = useCreateBooking();
+
+  const [step, setStep] = useState(1);
+  const [draft, setDraft] = useState<Draft>(() => ({
+    ...INITIAL,
+    lead: {
+      ...INITIAL.lead,
+      firstName: user?.firstName ?? "",
+      lastName: user?.lastName ?? "",
+      email: user?.email ?? "",
+    },
+  }));
+  const [error, setError] = useState<string | null>(null);
+
+  const selectedDate: Availability | undefined = useMemo(
+    () => availability.find((a) => a.date === draft.departureDate),
+    [availability, draft.departureDate]
+  );
+
+  const pricePerPerson = selectedDate?.priceCents ?? tour?.priceCents ?? 0;
+  const subtotal = pricePerPerson * draft.travelersCount;
+  const addonsTotal = useMemo(
+    () =>
+      ADDON_OPTIONS
+        .filter((a) => draft.addons.includes(a.code))
+        .reduce((sum, a) => sum + a.priceCents * draft.travelersCount, 0),
+    [draft.addons, draft.travelersCount]
+  );
+  const total = subtotal + addonsTotal;
+
+  if (tourLoading || !tour) {
+    return (
+      <main className="booking-page">
+        <Nav />
+        <div className="booking-layout">
+          <p className="text-muted">Loading…</p>
+        </div>
+      </main>
+    );
+  }
+
+  const canProceed = (() => {
+    if (step === 1) return Boolean(draft.departureDate) && draft.travelersCount > 0;
+    if (step === 2) {
+      const { firstName, lastName, email } = draft.lead;
+      const allTravelersFilled = draft.travelerDetails.every(
+        (t) => t.firstName.trim() && t.lastName.trim()
+      );
+      return firstName.trim() && lastName.trim() && email.includes("@") && allTravelersFilled;
+    }
+    return true;
+  })();
 
   const next = () => {
-    if (step === 4) {
-      navigate("/confirmed/RW-28461");
-    } else {
+    setError(null);
+    if (step < 4) {
       setStep(step + 1);
+      return;
     }
+    if (!draft.departureDate) return;
+    createBooking.mutate(
+      {
+        tourSlug: tour.slug,
+        departureDate: draft.departureDate,
+        travelers: draft.travelerDetails,
+        lead: draft.lead,
+        addons: draft.addons,
+      },
+      {
+        onSuccess: (booking) => {
+          navigate(`/confirmed/${booking.reference}`, { replace: true });
+        },
+        onError: (err) => {
+          setError(err instanceof ApiError ? err.message : "Could not create booking");
+        },
+      }
+    );
+  };
+
+  const updateTravelersCount = (delta: number) => {
+    setDraft((prev) => {
+      const next = Math.max(1, Math.min(8, prev.travelersCount + delta));
+      const details = [...prev.travelerDetails];
+      while (details.length < next) {
+        details.push({ firstName: "", lastName: "", travelerType: "ADULT" });
+      }
+      while (details.length > next) details.pop();
+      return { ...prev, travelersCount: next, travelerDetails: details };
+    });
   };
 
   return (
@@ -60,39 +174,41 @@ export default function BookingPage() {
               <h1>Choose your departure</h1>
               <p>Select an available date for your private journey.</p>
 
-              <div className="calendar">
-                <div className="calendar-head">
-                  <button>‹</button>
-                  <strong>September 2026</strong>
-                  <button>›</button>
+              {availLoading ? (
+                <p className="text-muted">Loading departures…</p>
+              ) : availability.length === 0 ? (
+                <p className="text-muted">No departures scheduled yet.</p>
+              ) : (
+                <div className="departure-list">
+                  {availability.slice(0, 12).map((a) => {
+                    const soldOut = a.remaining === 0;
+                    const active = draft.departureDate === a.date;
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        disabled={soldOut}
+                        className={`departure-card ${active ? "active" : ""} ${soldOut ? "sold-out" : ""}`}
+                        onClick={() =>
+                          setDraft((prev) => ({ ...prev, departureDate: a.date }))
+                        }
+                      >
+                        <strong>
+                          {new Date(a.date).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </strong>
+                        <small>
+                          {soldOut ? "Sold out" : `${a.remaining} places left`}
+                        </small>
+                        <span>{formatPrice(a.priceCents, a.currency)}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="week">
-                  {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((d) => (
-                    <span key={d}>{d}</span>
-                  ))}
-                  {Array.from({ length: 35 }, (_, i) => (
-                    <button
-                      key={i}
-                      className={
-                        [10, 17, 24].includes(i) ? "available" : i < 3 ? "muted" : ""
-                      }
-                    >
-                      {i < 3 ? 29 + i : i - 2}
-                    </button>
-                  ))}
-                </div>
-                <div className="calendar-key">
-                  <span>
-                    <i /> Available
-                  </span>
-                  <span>
-                    <i /> Selected
-                  </span>
-                  <span>
-                    <i /> Unavailable
-                  </span>
-                </div>
-              </div>
+              )}
 
               <div className="traveller-row">
                 <div>
@@ -100,9 +216,9 @@ export default function BookingPage() {
                   <span>Ages 12 and over</span>
                 </div>
                 <div className="stepper">
-                  <button>−</button>
-                  <span>2</span>
-                  <button>+</button>
+                  <button type="button" onClick={() => updateTravelersCount(-1)}>−</button>
+                  <span>{draft.travelersCount}</span>
+                  <button type="button" onClick={() => updateTravelersCount(1)}>+</button>
                 </div>
               </div>
             </>
@@ -113,38 +229,87 @@ export default function BookingPage() {
               <span className="eyebrow">Step 2 of 4</span>
               <h1>Tell us about you</h1>
               <p>We'll use these details to prepare your journey.</p>
+
               <div className="form-grid">
                 <label>
                   First name
-                  <input placeholder="First name" />
+                  <input
+                    value={draft.lead.firstName}
+                    onChange={(e) =>
+                      setDraft({ ...draft, lead: { ...draft.lead, firstName: e.target.value } })
+                    }
+                  />
                 </label>
                 <label>
                   Last name
-                  <input placeholder="Last name" />
+                  <input
+                    value={draft.lead.lastName}
+                    onChange={(e) =>
+                      setDraft({ ...draft, lead: { ...draft.lead, lastName: e.target.value } })
+                    }
+                  />
                 </label>
                 <label className="wide">
                   Email address
-                  <input type="email" placeholder="you@email.com" />
+                  <input
+                    type="email"
+                    value={draft.lead.email}
+                    onChange={(e) =>
+                      setDraft({ ...draft, lead: { ...draft.lead, email: e.target.value } })
+                    }
+                  />
                 </label>
                 <label>
                   Phone number
-                  <input placeholder="+1 555 000 0000" />
+                  <input
+                    value={draft.lead.phone}
+                    onChange={(e) =>
+                      setDraft({ ...draft, lead: { ...draft.lead, phone: e.target.value } })
+                    }
+                  />
                 </label>
                 <label>
                   Country
-                  <select>
-                    <option>United States</option>
-                    <option>United Kingdom</option>
-                  </select>
+                  <input
+                    value={draft.lead.country}
+                    onChange={(e) =>
+                      setDraft({ ...draft, lead: { ...draft.lead, country: e.target.value } })
+                    }
+                  />
                 </label>
               </div>
-              <div className="traveller-card">
-                <span>TRAVELLER 2</span>
-                <strong>Guest details</strong>
-                <button>
-                  Add details <Icon name="arrow" />
-                </button>
-              </div>
+
+              {draft.travelerDetails.map((traveler, i) => (
+                <div className="traveller-card" key={i}>
+                  <div style={{ flex: 1 }}>
+                    <span>TRAVELLER {i + 1}</span>
+                    <div className="form-grid" style={{ marginTop: 8 }}>
+                      <label>
+                        First name
+                        <input
+                          value={traveler.firstName}
+                          onChange={(e) => {
+                            const details = [...draft.travelerDetails];
+                            details[i] = { ...traveler, firstName: e.target.value };
+                            setDraft({ ...draft, travelerDetails: details });
+                          }}
+                        />
+                      </label>
+                      <label>
+                        Last name
+                        <input
+                          value={traveler.lastName}
+                          onChange={(e) => {
+                            const details = [...draft.travelerDetails];
+                            details[i] = { ...traveler, lastName: e.target.value };
+                            setDraft({ ...draft, travelerDetails: details });
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </>
           )}
 
@@ -154,14 +319,25 @@ export default function BookingPage() {
               <h1>Make it yours</h1>
               <p>Optional touches to make your journey even more seamless.</p>
               <div className="addons">
-                {ADDONS.map(([title, description, price], i) => (
-                  <label key={title}>
-                    <input type="checkbox" defaultChecked={i === 2} />
+                {ADDON_OPTIONS.map((a) => (
+                  <label key={a.code}>
+                    <input
+                      type="checkbox"
+                      checked={draft.addons.includes(a.code)}
+                      onChange={() => {
+                        setDraft((prev) => ({
+                          ...prev,
+                          addons: prev.addons.includes(a.code)
+                            ? prev.addons.filter((c) => c !== a.code)
+                            : [...prev.addons, a.code],
+                        }));
+                      }}
+                    />
                     <div>
-                      <strong>{title}</strong>
-                      <p>{description}</p>
+                      <strong>{a.label}</strong>
+                      <p>{a.description}</p>
                     </div>
-                    <span>{price}</span>
+                    <span>{formatPrice(a.priceCents, "USD")}</span>
                   </label>
                 ))}
               </div>
@@ -171,29 +347,21 @@ export default function BookingPage() {
           {step === 4 && (
             <>
               <span className="eyebrow">Step 4 of 4</span>
-              <h1>Review & pay</h1>
-              <p>Your place is held for 20 minutes while you complete payment.</p>
-              <div className="payment">
-                <strong>Payment details</strong>
-                <label>
-                  Card number
-                  <input placeholder="1234 5678 9012 3456" />
-                </label>
-                <div>
-                  <label>
-                    Expiry
-                    <input placeholder="MM / YY" />
-                  </label>
-                  <label>
-                    Security code
-                    <input placeholder="CVC" />
-                  </label>
-                </div>
+              <h1>Review & reserve</h1>
+              <p>
+                Your place is held for 20 minutes. Payment collection is coming
+                soon — for now we'll save your reservation.
+              </p>
+
+              <div className="payment" style={{ background: "#fff9f5", borderColor: "var(--terracotta)" }}>
+                <strong>Reservation only</strong>
+                <p style={{ fontSize: 13, color: "var(--muted)" }}>
+                  This is a development build. No payment is collected. Your
+                  booking will be saved in <em>Pending</em> status.
+                </p>
               </div>
-              <label className="terms">
-                <input type="checkbox" /> I agree to the booking conditions and
-                cancellation policy.
-              </label>
+
+              {error && <p className="form-error" style={{ marginTop: 16 }}>{error}</p>}
             </>
           )}
 
@@ -203,47 +371,70 @@ export default function BookingPage() {
                 Back
               </Button>
             )}
-            <Button onClick={next}>
-              {step === 4 ? "Pay securely" : "Continue"} <Icon name="arrow" />
+            <Button
+              onClick={next}
+              disabled={!canProceed || createBooking.isPending}
+            >
+              {step === 4
+                ? createBooking.isPending ? "Reserving…" : "Reserve my place"
+                : "Continue"}{" "}
+              <Icon name="arrow" />
             </Button>
           </div>
         </section>
 
         <aside className="order-summary">
-          <img src={photos.hero} alt={tour.title} />
+          <img src={tour.imageUrl} alt={tour.title} />
           <span className="eyebrow">Your journey</span>
           <h3>{tour.title}</h3>
           <p>
-            {tour.place} · {tour.days}
+            {tour.place} · {tour.durationDays} days
           </p>
           <hr />
           <dl>
             <div>
               <dt>Departure</dt>
-              <dd>12 September 2026</dd>
+              <dd>
+                {draft.departureDate
+                  ? new Date(draft.departureDate).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : "—"}
+              </dd>
             </div>
             <div>
               <dt>Travellers</dt>
-              <dd>2 adults</dd>
+              <dd>
+                {draft.travelersCount} {draft.travelersCount === 1 ? "adult" : "adults"}
+              </dd>
             </div>
             <div>
               <dt>Journey</dt>
-              <dd>$19,700</dd>
+              <dd>{formatPrice(subtotal, selectedDate?.currency ?? tour.currency)}</dd>
             </div>
-            <div>
-              <dt>Balloon safari</dt>
-              <dd>$1,240</dd>
-            </div>
+            {draft.addons.map((code) => {
+              const addon = ADDON_OPTIONS.find((a) => a.code === code);
+              if (!addon) return null;
+              return (
+                <div key={code}>
+                  <dt>{addon.label}</dt>
+                  <dd>{formatPrice(addon.priceCents * draft.travelersCount, "USD")}</dd>
+                </div>
+              );
+            })}
           </dl>
           <hr />
           <div className="total">
             <span>Total</span>
             <strong>
-              $20,940 <small>USD</small>
+              {formatPrice(total, selectedDate?.currency ?? tour.currency)}{" "}
+              <small>{(selectedDate?.currency ?? tour.currency)}</small>
             </strong>
           </div>
           <p className="secure">
-            <Icon name="shield" /> Secure, encrypted checkout
+            <Icon name="shield" /> No payment collected today
           </p>
         </aside>
       </div>

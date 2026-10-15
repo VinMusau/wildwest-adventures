@@ -25,6 +25,9 @@ export default function Nav({ light = false }: NavProps) {
 
         {user ? (
           <>
+            <Link to="/account/bookings" onClick={close}>
+              My Bookings
+            </Link>
             <span className="nav-user">{user.firstName}</span>
             <button className="nav-link-btn" onClick={() => { logout(); close(); }}>
               Sign out
