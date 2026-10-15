@@ -142,6 +142,10 @@ export interface CreateBookingInput {
   addons: string[];
 }
 
+export interface PaymentIntentResponse {
+  clientSecret: string;
+}
+
 export type IconName =
   | "arrow"
   | "chevron"

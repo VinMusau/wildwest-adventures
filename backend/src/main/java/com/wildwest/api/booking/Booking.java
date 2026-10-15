@@ -86,4 +86,13 @@ public class Booking extends BaseEntity {
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
     private List<BookingAddon> addons = new ArrayList<>();
+
+    @Column(name = "stripe_payment_intent_id", length = 120)
+    private String stripePaymentIntentId;
+
+    @Column(name = "paid_at")
+    private Instant paidAt;
+
+    @Column(name = "payment_method", length = 40)
+    private String paymentMethod;
 }

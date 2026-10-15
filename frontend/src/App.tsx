@@ -17,6 +17,7 @@ import HealthBadge from "@/components/dev/HealthBadge";
 import { AuthProvider } from "@/features/auth/AuthContext";
 import ProtectedRoute from "@/features/auth/ProtectedRoute";
 import MyBookingsPage from "@/routes/MyBookingsPage";
+import PaymentReturnPage from "@/routes/PaymentReturnPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +70,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <MyBookingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment/return"
+              element={
+                <ProtectedRoute>
+                  <PaymentReturnPage />
                 </ProtectedRoute>
               }
             />
