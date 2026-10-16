@@ -101,4 +101,19 @@ public class Booking extends BaseEntity {
 
     @Column(name = "payment_provider", length = 20)
     private String paymentProvider = "STRIPE";
+
+        @Column(name = "refunded_at")
+    private Instant refundedAt;
+
+    @Column(name = "refund_reference", length = 120)
+    private String refundReference;
+
+    @Column(name = "refund_amount_cents")
+    private Integer refundAmountCents;
+
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
+
+    @Column(name = "cancel_reason", length = 300)
+    private String cancelReason;
 }

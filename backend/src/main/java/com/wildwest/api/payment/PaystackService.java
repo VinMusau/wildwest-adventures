@@ -178,4 +178,37 @@ public class PaystackService implements PaymentProvider {
 
         return true;
     }
+
+    /**
+     * Issue a refund via Paystack. Returns the refund ID assigned by Paystack.
+     * amountCents may be a partial refund; if null, refunds the full amount.
+     */
+    public String refund(String transactionReference, int amountCents) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("transaction", transactionReference);
+        body.put("amount", amountCents);
+
+        Map<String, Object> response;
+        try {
+            response = restClient.post()
+                    .uri("/refund")
+                    .body(body)
+                    .retrieve()
+                    .body(Map.class);
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY, "Paystack refund error: " + e.getMessage());
+        }
+
+        if (response == null || !Boolean.TRUE.equals(response.get("status"))) {
+            String message = response != null
+                    ? String.valueOf(response.get("message"))
+                    : "Unknown Paystack error";
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, message);
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) response.get("data");
+        return String.valueOf(data.get("id"));
+    }
 }
