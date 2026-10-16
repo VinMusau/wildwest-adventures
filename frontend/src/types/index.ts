@@ -151,6 +151,65 @@ export interface PaymentInitResponse {
   accessCode: string | null;  // Paystack access_code for popup resume
 }
 
+export interface AdminTourSummary {
+  slug: string;
+  title: string;
+  place: string;
+  destinationSlug: string;
+  destinationName: string;
+  durationDays: number;
+  priceCents: number;
+  currency: string;
+  featured: boolean;
+  displayOrder: number;
+}
+
+export interface AdminItineraryDay {
+  dayNumber: number;
+  title: string;
+  description: string;
+  accommodation: string | null;
+  mealsIncluded: string | null;
+}
+
+export interface AdminTourDetail {
+  slug: string;
+  title: string;
+  place: string;
+  destinationSlug: string;
+  durationDays: number;
+  priceCents: number;
+  currency: string;
+  rating: number;
+  reviewCount: number;
+  tag: string;
+  imageUrl: string;
+  featured: boolean;
+  displayOrder: number;
+  styleSlugs: string[];
+  itinerary: AdminItineraryDay[];
+  inclusions: string[];
+}
+
+export interface TourWriteInput {
+  title: string;
+  slug?: string;
+  place: string;
+  destinationSlug: string;
+  durationDays: number;
+  priceCents: number;
+  currency: string;
+  rating: number;
+  reviewCount: number;
+  tag: string;
+  imageUrl: string;
+  featured: boolean;
+  displayOrder: number;
+  styleSlugs: string[];
+  itinerary: AdminItineraryDay[];
+  inclusions: string[];
+}
+
 export type IconName =
   | "arrow"
   | "chevron"

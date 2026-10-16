@@ -19,6 +19,11 @@ import ProtectedRoute from "@/features/auth/ProtectedRoute";
 import MyBookingsPage from "@/routes/MyBookingsPage";
 import PaymentReturnPage from "@/routes/PaymentReturnPage";
 
+import AdminLayout from "@/routes/admin/AdminLayout";
+import AdminDashboardPage from "@/routes/admin/AdminDashboardPage";
+import AdminToursPage from "@/routes/admin/AdminToursPage";
+import AdminTourEditPage from "@/routes/admin/AdminTourEditPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 60_000, retry: 1 },
@@ -81,6 +86,21 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="tours" element={<AdminToursPage />} />
+              <Route path="tours/new" element={<AdminTourEditPage />} />
+              <Route path="tours/:slug/edit" element={<AdminTourEditPage />} />
+            </Route>
+
           </Routes>
           <HealthBadge />
         </AuthProvider>
