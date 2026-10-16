@@ -13,11 +13,14 @@ import BookingPage from "@/routes/BookingPage";
 import ConfirmationPage from "@/routes/ConfirmationPage";
 import LoginPage from "@/routes/LoginPage";
 import RegisterPage from "@/routes/RegisterPage";
-import HealthBadge from "@/components/dev/HealthBadge";
 import { AuthProvider } from "@/features/auth/AuthContext";
 import ProtectedRoute from "@/features/auth/ProtectedRoute";
 import MyBookingsPage from "@/routes/MyBookingsPage";
 import PaymentReturnPage from "@/routes/PaymentReturnPage";
+
+import DestinationsPage from "@/routes/DestinationsPage";
+import TravelStylesPage from "@/routes/TravelStylesPage";
+import StoryPage from "@/routes/StoryPage";
 
 import AdminLayout from "@/routes/admin/AdminLayout";
 import AdminDashboardPage from "@/routes/admin/AdminDashboardPage";
@@ -56,6 +59,9 @@ export default function App() {
             <Route path="/journeys/:slug" element={<TourDetailPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/destinations" element={<DestinationsPage />} />
+            <Route path="/styles" element={<TravelStylesPage />} />
+            <Route path="/story" element={<StoryPage />} />
             <Route
               path="/book/:slug"
               element={
@@ -106,7 +112,6 @@ export default function App() {
             </Route>
 
           </Routes>
-          <HealthBadge />
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

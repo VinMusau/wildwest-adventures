@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import Button from "@/components/ui/Button";
@@ -18,9 +19,29 @@ const SORT_OPTIONS: Array<[string, string]> = [
 ];
 
 export default function ToursPage() {
-  const [filters, setFilters] = useState<TourFilters>({});
   const [showFilters, setShowFilters] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL is the source of truth for filters
+  const filters: TourFilters = useMemo(
+    () => ({
+      destination: searchParams.get("destination") ?? undefined,
+      style: searchParams.get("style") ?? undefined,
+      q: searchParams.get("q") ?? undefined,
+      sort: searchParams.get("sort") ?? "recommended",
+    }),
+    [searchParams]
+  );
+
+  const setFilter = (key: keyof TourFilters, value?: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value) next.set(key, value);
+      else next.delete(key);
+      return next;
+    });
+  };
 
   const { data: tours = [], isLoading } = useTours(filters);
   const { data: destinations = [] } = useDestinations();
@@ -40,26 +61,12 @@ export default function ToursPage() {
     return chips;
   }, [filters, destinations, styles]);
 
-  const clearFilter = (key: keyof TourFilters) => {
-    setFilters((prev) => {
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-  };
-
   const toggleDestination = (slug: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      destination: prev.destination === slug ? undefined : slug,
-    }));
+    setFilter("destination", filters.destination === slug ? undefined : slug);
   };
 
   const toggleStyle = (slug: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      style: prev.style === slug ? undefined : slug,
-    }));
+    setFilter("style", filters.style === slug ? undefined : slug);
   };
 
   return (
@@ -135,7 +142,10 @@ export default function ToursPage() {
               </strong>
               <div className="chips">
                 {activeChips.map((chip) => (
-                  <button key={chip.key} onClick={() => clearFilter(chip.key)}>
+                  <button
+                    key={chip.key}
+                    onClick={() => setFilter(chip.key, undefined)}
+                  >
                     {chip.label} <Icon name="close" size={14} />
                   </button>
                 ))}
@@ -152,7 +162,11 @@ export default function ToursPage() {
                 <button className="sort" onClick={() => setSortOpen(!sortOpen)}>
                   Sort:{" "}
                   <strong>
-                    {SORT_OPTIONS.find(([k]) => k === (filters.sort ?? "recommended"))?.[1]}
+                    {
+                      SORT_OPTIONS.find(
+                        ([k]) => k === (filters.sort ?? "recommended")
+                      )?.[1]
+                    }
                   </strong>{" "}
                   <Icon name="down" size={16} />
                 </button>
@@ -176,7 +190,7 @@ export default function ToursPage() {
                       <button
                         key={key}
                         onClick={() => {
-                          setFilters((prev) => ({ ...prev, sort: key }));
+                          setFilter("sort", key);
                           setSortOpen(false);
                         }}
                         style={{
