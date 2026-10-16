@@ -279,6 +279,68 @@ export interface AdminBookingsPage {
   size: number;
 }
 
+export interface AdminKpiSummary {
+  bookingsThisMonth: number;
+  bookingsLastMonth: number;
+  revenueThisMonthCents: number;
+  revenueLastMonthCents: number;
+  confirmedTotal: number;
+  cancelledTotal: number;
+  pendingTotal: number;
+  expiredTotal: number;
+  totalBookings: number;
+}
+
+export interface AdminRevenuePoint {
+  date: string;
+  revenueCents: number;
+  bookingsCount: number;
+}
+
+export interface AdminTopTour {
+  slug: string;
+  title: string;
+  bookingsCount: number;
+  revenueCents: number;
+}
+
+export interface AdminRecentBooking {
+  reference: string;
+  customerName: string;
+  tourTitle: string;
+  status: BookingStatus;
+  totalCents: number;
+  currency: string;
+  createdAt: string;
+}
+
+export interface AdminDashboard {
+  kpis: AdminKpiSummary;
+  revenueSeries: AdminRevenuePoint[];
+  topTours: AdminTopTour[];
+  recentBookings: AdminRecentBooking[];
+}
+
+export interface AdminCustomer {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: "USER" | "ADMIN";
+  createdAt: string;
+  bookingsCount: number;
+  totalSpentCents: number;
+  lastBookingAt: string | null;
+}
+
+export interface AdminCustomersPage {
+  content: AdminCustomer[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
 export type IconName =
   | "arrow"
   | "chevron"

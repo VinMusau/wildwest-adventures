@@ -24,6 +24,7 @@ import AdminDashboardPage from "@/routes/admin/AdminDashboardPage";
 import AdminToursPage from "@/routes/admin/AdminToursPage";
 import AdminTourEditPage from "@/routes/admin/AdminTourEditPage";
 import AdminBookingsPage from "@/routes/admin/AdminBookingsPage";
+import AdminCustomersPage from "@/routes/admin/AdminCustomersPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -101,6 +102,7 @@ export default function App() {
               <Route path="tours/new" element={<AdminTourEditPage />} />
               <Route path="tours/:slug/edit" element={<AdminTourEditPage />} />
               <Route path="bookings" element={<AdminBookingsPage />} />
+              <Route path="customers" element={<AdminCustomersPage />} />
             </Route>
 
           </Routes>
