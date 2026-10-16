@@ -13,6 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class PaystackService implements PaymentProvider {
@@ -135,5 +137,45 @@ public class PaystackService implements PaymentProvider {
                 HttpStatus.BAD_REQUEST,
                 "Paystack charge currency " + chargeCurrency
                         + " does not support bookings in " + bookingCurrency);
+    }
+
+    private static final Logger log = LoggerFactory.getLogger(PaystackService.class);
+
+    @Transactional
+    public boolean verify(String paystackReference) {
+        Map<String, Object> response;
+        try {
+            response = restClient.get()
+                    .uri("/transaction/verify/{ref}", paystackReference)
+                    .retrieve()
+                    .body(Map.class);
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY, "Paystack verify error: " + e.getMessage());
+        }
+
+        if (response == null || !Boolean.TRUE.equals(response.get("status"))) {
+            return false;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) response.get("data");
+        String status = String.valueOf(data.get("status"));
+        if (!"success".equals(status)) {
+            return false;
+        }
+
+        bookingRepository.findByPaystackReference(paystackReference).ifPresent(booking -> {
+            if (booking.getStatus() == Booking.Status.CONFIRMED) {
+                return;   // idempotent
+            }
+            booking.setStatus(Booking.Status.CONFIRMED);
+            booking.setPaidAt(Instant.now());
+            booking.setPaymentMethod("PAYSTACK");
+            bookingRepository.save(booking);
+            log.info("Booking {} confirmed via verify endpoint", booking.getReference());
+        });
+
+        return true;
     }
 }

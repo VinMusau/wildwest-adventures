@@ -9,18 +9,23 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/bookings")
 public class PaymentController {
 
     private final PaymentProviderRouter router;
+    private final PaystackService paystackService;
     private final BookingRepository bookingRepository;
 
     public PaymentController(
             PaymentProviderRouter router,
+            PaystackService paystackService,
             BookingRepository bookingRepository
     ) {
         this.router = router;
+        this.paystackService = paystackService;
         this.bookingRepository = bookingRepository;
     }
 
@@ -46,15 +51,44 @@ public class PaymentController {
             @AuthenticationPrincipal User user,
             @PathVariable String reference
     ) {
+        Booking booking = loadOwned(user, reference);
+        var result = router.current().initialize(user, booking);
+        return PaymentInitResponse.from(result);
+    }
+
+    @PostMapping("/{reference}/verify-payment")
+    @Transactional
+    public Map<String, Object> verifyPayment(
+            @AuthenticationPrincipal User user,
+            @PathVariable String reference
+    ) {
+        Booking booking = loadOwned(user, reference);
+
+        if (booking.getPaystackReference() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No payment has been initiated for this booking");
+        }
+
+        boolean confirmed = paystackService.verify(booking.getPaystackReference());
+
+        // Reload to reflect any state change
+        Booking refreshed = bookingRepository.findByReference(reference).orElseThrow();
+
+        return Map.of(
+                "confirmed", confirmed,
+                "bookingReference", refreshed.getReference(),
+                "status", refreshed.getStatus().name()
+        );
+    }
+
+    private Booking loadOwned(User user, String reference) {
         Booking booking = bookingRepository.findByReference(reference)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Booking not found"));
-
         if (!booking.getUser().getId().equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found");
         }
-
-        var result = router.current().initialize(user, booking);
-        return PaymentInitResponse.from(result);
+        return booking;
     }
 }

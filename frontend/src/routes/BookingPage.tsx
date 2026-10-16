@@ -15,6 +15,8 @@ import { formatPrice } from "@/lib/format";
 import { ApiError } from "@/lib/api";
 // import { stripePromise } from "@/lib/stripe";
 import type { Availability, Booking, PaymentInitResponse, TravelerType } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiPost } from "@/lib/api";
 
 const STEPS = ["Dates & travellers", "Your details", "Make it yours", "Review & pay"];
 
@@ -61,6 +63,7 @@ export default function BookingPage() {
   const paymentInit = usePaymentInit();
   const [pendingBooking, setPendingBooking] = useState<Booking | null>(null);
   const [paymentData, setPaymentData] = useState<PaymentInitResponse | null>(null);
+  const queryClient = useQueryClient();
 
   const [step, setStep] = useState(1);
   const [draft, setDraft] = useState<Draft>(() => ({
@@ -183,7 +186,9 @@ export default function BookingPage() {
           const state = step === index ? "active" : step > index ? "done" : "";
           return (
             <div className={state} key={label}>
-              <span>{step > index ? <Icon name="check" size={16} /> : index}</span>
+              <span>
+                {step > index ? <Icon name="check" size={16} /> : index}
+              </span>
               <strong>{label}</strong>
             </div>
           );
@@ -214,7 +219,10 @@ export default function BookingPage() {
                         disabled={soldOut}
                         className={`departure-card ${active ? "active" : ""} ${soldOut ? "sold-out" : ""}`}
                         onClick={() =>
-                          setDraft((prev) => ({ ...prev, departureDate: a.date }))
+                          setDraft((prev) => ({
+                            ...prev,
+                            departureDate: a.date,
+                          }))
                         }
                       >
                         <strong>
@@ -240,9 +248,16 @@ export default function BookingPage() {
                   <span>Ages 12 and over</span>
                 </div>
                 <div className="stepper">
-                  <button type="button" onClick={() => updateTravelersCount(-1)}>−</button>
+                  <button
+                    type="button"
+                    onClick={() => updateTravelersCount(-1)}
+                  >
+                    −
+                  </button>
                   <span>{draft.travelersCount}</span>
-                  <button type="button" onClick={() => updateTravelersCount(1)}>+</button>
+                  <button type="button" onClick={() => updateTravelersCount(1)}>
+                    +
+                  </button>
                 </div>
               </div>
             </>
@@ -260,7 +275,10 @@ export default function BookingPage() {
                   <input
                     value={draft.lead.firstName}
                     onChange={(e) =>
-                      setDraft({ ...draft, lead: { ...draft.lead, firstName: e.target.value } })
+                      setDraft({
+                        ...draft,
+                        lead: { ...draft.lead, firstName: e.target.value },
+                      })
                     }
                   />
                 </label>
@@ -269,7 +287,10 @@ export default function BookingPage() {
                   <input
                     value={draft.lead.lastName}
                     onChange={(e) =>
-                      setDraft({ ...draft, lead: { ...draft.lead, lastName: e.target.value } })
+                      setDraft({
+                        ...draft,
+                        lead: { ...draft.lead, lastName: e.target.value },
+                      })
                     }
                   />
                 </label>
@@ -279,7 +300,10 @@ export default function BookingPage() {
                     type="email"
                     value={draft.lead.email}
                     onChange={(e) =>
-                      setDraft({ ...draft, lead: { ...draft.lead, email: e.target.value } })
+                      setDraft({
+                        ...draft,
+                        lead: { ...draft.lead, email: e.target.value },
+                      })
                     }
                   />
                 </label>
@@ -288,7 +312,10 @@ export default function BookingPage() {
                   <input
                     value={draft.lead.phone}
                     onChange={(e) =>
-                      setDraft({ ...draft, lead: { ...draft.lead, phone: e.target.value } })
+                      setDraft({
+                        ...draft,
+                        lead: { ...draft.lead, phone: e.target.value },
+                      })
                     }
                   />
                 </label>
@@ -297,7 +324,10 @@ export default function BookingPage() {
                   <input
                     value={draft.lead.country}
                     onChange={(e) =>
-                      setDraft({ ...draft, lead: { ...draft.lead, country: e.target.value } })
+                      setDraft({
+                        ...draft,
+                        lead: { ...draft.lead, country: e.target.value },
+                      })
                     }
                   />
                 </label>
@@ -314,7 +344,10 @@ export default function BookingPage() {
                           value={traveler.firstName}
                           onChange={(e) => {
                             const details = [...draft.travelerDetails];
-                            details[i] = { ...traveler, firstName: e.target.value };
+                            details[i] = {
+                              ...traveler,
+                              firstName: e.target.value,
+                            };
                             setDraft({ ...draft, travelerDetails: details });
                           }}
                         />
@@ -325,7 +358,10 @@ export default function BookingPage() {
                           value={traveler.lastName}
                           onChange={(e) => {
                             const details = [...draft.travelerDetails];
-                            details[i] = { ...traveler, lastName: e.target.value };
+                            details[i] = {
+                              ...traveler,
+                              lastName: e.target.value,
+                            };
                             setDraft({ ...draft, travelerDetails: details });
                           }}
                         />
@@ -368,7 +404,7 @@ export default function BookingPage() {
             </>
           )}
 
-                    {step === 4 && (
+          {step === 4 && (
             <>
               <span className="eyebrow">Step 4 of 4</span>
               <h1>Review & pay</h1>
@@ -376,11 +412,15 @@ export default function BookingPage() {
               {!pendingBooking && (
                 <>
                   <p>
-                    Your place is held for 20 minutes while you complete payment.
+                    Your place is held for 20 minutes while you complete
+                    payment.
                   </p>
                   <div
                     className="payment"
-                    style={{ background: "#fff9f5", borderColor: "var(--terracotta)" }}
+                    style={{
+                      background: "#fff9f5",
+                      borderColor: "var(--terracotta)",
+                    }}
                   >
                     <strong>Ready to reserve</strong>
                     <p style={{ fontSize: 13, color: "var(--muted)" }}>
@@ -400,33 +440,55 @@ export default function BookingPage() {
                 <p className="text-muted">Preparing secure payment…</p>
               )}
 
-              {pendingBooking && paymentData?.provider === "PAYSTACK" && paymentData.accessCode && (
-                <PaystackPayment
-                  accessCode={paymentData.accessCode}
-                  amountLabel={formatPrice(
-                    pendingBooking.totalCents,
-                    pendingBooking.currency
-                  )}
-                  onSuccess={() => {
-                    // Webhook will confirm; give it a beat then navigate
-                    setTimeout(() => {
+              {pendingBooking &&
+                paymentData?.provider === "PAYSTACK" &&
+                paymentData.accessCode && (
+                  <PaystackPayment
+                    accessCode={paymentData.accessCode}
+                    amountLabel={formatPrice(
+                      pendingBooking.totalCents,
+                      pendingBooking.currency,
+                    )}
+                    onSuccess={async () => {
+                      // Verify directly with Paystack — webhook is fire-and-forget and can
+                      // miss (ngrok restarts, backend reloads, network hiccups).
+                      try {
+                        await apiPost(
+                          `/v1/bookings/${pendingBooking.reference}/verify-payment`,
+                          {},
+                        );
+                        queryClient.invalidateQueries({
+                          queryKey: ["booking", pendingBooking.reference],
+                        });
+                        queryClient.invalidateQueries({
+                          queryKey: ["bookings", "mine"],
+                        });
+                      } catch (e) {
+                        console.warn(
+                          "Verify failed; webhook will reconcile",
+                          e,
+                        );
+                      }
                       navigate(`/confirmed/${pendingBooking.reference}`, {
                         replace: true,
                       });
-                    }, 1500);
-                  }}
-                  onCancel={() => {
-                    setError("Payment was cancelled. Your place is still held.");
-                  }}
-                />
-              )}
+                    }}
+                    onCancel={() => {
+                      setError(
+                        "Payment was cancelled. Your place is still held.",
+                      );
+                    }}
+                  />
+                )}
 
-              {pendingBooking && paymentData?.provider === "STRIPE" && paymentData.clientKey && (
-                <p className="form-error">
-                  Stripe flow not wired in this build. Set PAYMENT_DEFAULT_PROVIDER=PAYSTACK
-                  in the backend .env.
-                </p>
-              )}
+              {pendingBooking &&
+                paymentData?.provider === "STRIPE" &&
+                paymentData.clientKey && (
+                  <p className="form-error">
+                    Stripe flow not wired in this build. Set
+                    PAYMENT_DEFAULT_PROVIDER=PAYSTACK in the backend .env.
+                  </p>
+                )}
             </>
           )}
 
@@ -439,7 +501,11 @@ export default function BookingPage() {
             {!paymentData && (
               <Button
                 onClick={next}
-                disabled={!canProceed || createBooking.isPending || paymentInit.isPending}
+                disabled={
+                  !canProceed ||
+                  createBooking.isPending ||
+                  paymentInit.isPending
+                }
               >
                 {step === 4
                   ? createBooking.isPending || paymentInit.isPending
@@ -476,12 +542,15 @@ export default function BookingPage() {
             <div>
               <dt>Travellers</dt>
               <dd>
-                {draft.travelersCount} {draft.travelersCount === 1 ? "adult" : "adults"}
+                {draft.travelersCount}{" "}
+                {draft.travelersCount === 1 ? "adult" : "adults"}
               </dd>
             </div>
             <div>
               <dt>Journey</dt>
-              <dd>{formatPrice(subtotal, selectedDate?.currency ?? tour.currency)}</dd>
+              <dd>
+                {formatPrice(subtotal, selectedDate?.currency ?? tour.currency)}
+              </dd>
             </div>
             {draft.addons.map((code) => {
               const addon = ADDON_OPTIONS.find((a) => a.code === code);
@@ -489,7 +558,12 @@ export default function BookingPage() {
               return (
                 <div key={code}>
                   <dt>{addon.label}</dt>
-                  <dd>{formatPrice(addon.priceCents * draft.travelersCount, "USD")}</dd>
+                  <dd>
+                    {formatPrice(
+                      addon.priceCents * draft.travelersCount,
+                      "USD",
+                    )}
+                  </dd>
                 </div>
               );
             })}
@@ -499,7 +573,7 @@ export default function BookingPage() {
             <span>Total</span>
             <strong>
               {formatPrice(total, selectedDate?.currency ?? tour.currency)}{" "}
-              <small>{(selectedDate?.currency ?? tour.currency)}</small>
+              <small>{selectedDate?.currency ?? tour.currency}</small>
             </strong>
           </div>
           <p className="secure">

@@ -49,3 +49,11 @@ wildwest:
   
   payment:
     default-provider: ${PAYMENT_DEFAULT_PROVIDER}
+
+  dev:
+    ngrok:
+      enabled: ${NGROK_ENABLED:true}
+      auth-token: ${NGROK_AUTH_TOKEN:}
+      binary: ${NGROK_BINARY:ngrok}
+      port: ${NGROK_PORT:8080}
+      url: ${NGROK_URL:}
