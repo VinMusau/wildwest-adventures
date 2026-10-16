@@ -23,6 +23,7 @@ import AdminLayout from "@/routes/admin/AdminLayout";
 import AdminDashboardPage from "@/routes/admin/AdminDashboardPage";
 import AdminToursPage from "@/routes/admin/AdminToursPage";
 import AdminTourEditPage from "@/routes/admin/AdminTourEditPage";
+import AdminBookingsPage from "@/routes/admin/AdminBookingsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,6 +100,7 @@ export default function App() {
               <Route path="tours" element={<AdminToursPage />} />
               <Route path="tours/new" element={<AdminTourEditPage />} />
               <Route path="tours/:slug/edit" element={<AdminTourEditPage />} />
+              <Route path="bookings" element={<AdminBookingsPage />} />
             </Route>
 
           </Routes>

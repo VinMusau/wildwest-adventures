@@ -210,6 +210,75 @@ export interface TourWriteInput {
   inclusions: string[];
 }
 
+export interface BookingAdminSummary {
+  id: string;
+  reference: string;
+  status: BookingStatus;
+  customerName: string;
+  customerEmail: string;
+  tourSlug: string;
+  tourTitle: string;
+  departureDate: string;
+  travelersCount: number;
+  totalCents: number;
+  currency: string;
+  paymentProvider: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  refundedAt: string | null;
+}
+
+export interface BookingAdminDetail {
+  id: string;
+  reference: string;
+  status: BookingStatus;
+  tourSlug: string;
+  tourTitle: string;
+  tourPlace: string;
+  tourImageUrl: string;
+  departureDate: string;
+  travelersCount: number;
+  priceCentsPerPerson: number;
+  subtotalCents: number;
+  addonsTotalCents: number;
+  totalCents: number;
+  currency: string;
+  paymentProvider: string | null;
+  paystackReference: string | null;
+  stripePaymentIntentId: string | null;
+  paidAt: string | null;
+  expiresAt: string | null;
+  refundedAt: string | null;
+  refundReference: string | null;
+  refundAmountCents: number | null;
+  cancelledAt: string | null;
+  cancelReason: string | null;
+  leadFirstName: string;
+  leadLastName: string;
+  leadEmail: string;
+  leadPhone: string | null;
+  leadCountry: string | null;
+  createdAt: string;
+  travelers: Array<{ id: string; firstName: string; lastName: string; travelerType: string }>;
+  addons: Array<{ id: string; code: string; label: string; priceCents: number }>;
+}
+
+export interface AdminBookingFilters {
+  status?: BookingStatus;
+  tour?: string;
+  q?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface AdminBookingsPage {
+  content: BookingAdminSummary[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
 export type IconName =
   | "arrow"
   | "chevron"
