@@ -10,6 +10,7 @@ import { photos } from "@/data/mock";
 import { useTravelStyles } from "@/features/travel-styles/useTravelStyles";
 import { useDestinations } from "@/features/destinations/useDestinations";
 import { useTours } from "@/features/tours/useTours";
+import TourCardSkeleton from "@/components/tour/TourCardSkeleton";
 
 export default function HomePage() {
   const scrollToStyles = () => {
@@ -84,13 +85,13 @@ export default function HomePage() {
           action="View all journeys"
         />
         <div className="tour-grid">
-          {toursLoading ? (
-            <p className="text-muted">Loading tours…</p>
-          ) : (
-            featuredTours
-              .slice(0, 3)
-              .map((tour) => <TourCard tour={tour} key={tour.slug} />)
-          )}
+          {toursLoading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <TourCardSkeleton key={i} />
+              ))
+            : featuredTours
+                .slice(0, 3)
+                .map((tour) => <TourCard tour={tour} key={tour.slug} />)}
         </div>
       </section>
 

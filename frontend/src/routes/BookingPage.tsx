@@ -18,6 +18,7 @@ import type { Availability, Booking, PaymentInitResponse, TravelerType } from "@
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/api";
 import { useToast } from "@/features/toast/useToast";
+import AvailabilitySkeleton from "../features/booking/AvailabilitySkeleton";
 
 const STEPS = ["Dates & travellers", "Your details", "Make it yours", "Review & pay"];
 
@@ -208,7 +209,7 @@ export default function BookingPage() {
               <p>Select an available date for your private journey.</p>
 
               {availLoading ? (
-                <p className="text-muted">Loading departures…</p>
+                <AvailabilitySkeleton />
               ) : availability.length === 0 ? (
                 <p className="text-muted">No departures scheduled yet.</p>
               ) : (

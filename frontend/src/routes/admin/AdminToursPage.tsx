@@ -5,6 +5,7 @@ import { useAdminTours, useDeleteTour } from "@/features/admin/useAdminTours";
 import { formatPrice } from "@/lib/format";
 import { useToast } from "@/features/toast/useToast";
 import { useConfirm } from "@/features/confirm/useConfirm";
+import AdminTableSkeleton from "@/components/admin/AdminTableSkeleton";
 
 export default function AdminToursPage() {
   const { data: tours = [], isLoading } = useAdminTours();
@@ -42,7 +43,7 @@ export default function AdminToursPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-muted">Loading tours…</p>
+        <AdminTableSkeleton rows={8} cols={7} />
       ) : tours.length === 0 ? (
         <p className="text-muted">No tours yet. Create your first one.</p>
       ) : (
@@ -64,7 +65,10 @@ export default function AdminToursPage() {
                 <tr key={tour.slug}>
                   <td className="admin-cell-num">{tour.displayOrder}</td>
                   <td>
-                    <Link to={`/admin/tours/${tour.slug}/edit`} className="admin-link">
+                    <Link
+                      to={`/admin/tours/${tour.slug}/edit`}
+                      className="admin-link"
+                    >
                       {tour.title}
                     </Link>
                     <small className="admin-slug">{tour.slug}</small>

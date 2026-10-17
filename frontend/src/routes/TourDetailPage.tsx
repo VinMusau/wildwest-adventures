@@ -10,6 +10,7 @@ import BookingCard from "@/components/tour/BookingCard";
 import { useTour } from "@/features/tours/useTour";
 import { useTours } from "@/features/tours/useTours";
 import { formatPrice } from "@/lib/format";
+import TourDetailSkeleton from "@/components/tour/TourDetailSkeleton";
 
 export default function TourDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -24,9 +25,7 @@ export default function TourDetailPage() {
     return (
       <main className="light-page">
         <Nav />
-        <div className="detail-layout">
-          <p className="text-muted">Loading journey…</p>
-        </div>
+        <TourDetailSkeleton />
         <Footer />
       </main>
     );

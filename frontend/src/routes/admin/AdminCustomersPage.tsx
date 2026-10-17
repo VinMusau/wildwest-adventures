@@ -2,6 +2,7 @@ import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { useAdminCustomers } from "@/features/admin/useAdminCustomers";
 import { formatPrice } from "@/lib/format";
+import AdminTableSkeleton from "@/components/admin/AdminTableSkeleton";
 
 export default function AdminCustomersPage() {
   const [page, setPage] = useState(0);
@@ -23,7 +24,7 @@ export default function AdminCustomersPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-muted">Loading customers…</p>
+        <AdminTableSkeleton rows={8} cols={6} />
       ) : customers.length === 0 ? (
         <p className="text-muted">No customers yet.</p>
       ) : (
@@ -45,7 +46,10 @@ export default function AdminCustomersPage() {
                   <td>
                     {c.firstName} {c.lastName}
                     {c.role === "ADMIN" && (
-                      <small className="admin-slug" style={{ color: "var(--terracotta)" }}>
+                      <small
+                        className="admin-slug"
+                        style={{ color: "var(--terracotta)" }}
+                      >
                         ADMIN
                       </small>
                     )}

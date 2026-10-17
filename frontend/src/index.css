@@ -3258,3 +3258,30 @@ a.style-card { text-decoration: none; }
     width: 100%;
   }
 }
+
+/* ---------- Skeletons ---------- */
+.skeleton {
+  background-color: #e8e1d6;
+  border-radius: 6px;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  display: block;
+}
+
+@keyframes skeleton-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* Skeleton Container overrides for grids */
+.tour-grid.listing .tour-card-skeleton {
+  min-width: 0;
+}
+
+/* Admin table skeleton specific */
+.admin-table td .skeleton {
+  height: 16px;
+}
+.admin-table th .skeleton {
+  height: 12px;
+}

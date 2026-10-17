@@ -17,6 +17,7 @@ import type {
 } from "@/types";
 import { useToast } from "@/features/toast/useToast";
 import { useConfirm } from "@/features/confirm/useConfirm";
+import AdminTableSkeleton from "@/components/admin/AdminTableSkeleton";
 
 const STATUS_OPTIONS: Array<{ value: "" | BookingStatus; label: string }> = [
   { value: "", label: "All statuses" },
@@ -63,7 +64,9 @@ export default function AdminBookingsPage() {
           onChange={(e) =>
             setFilters({
               ...filters,
-              status: (e.target.value || undefined) as BookingStatus | undefined,
+              status: (e.target.value || undefined) as
+                | BookingStatus
+                | undefined,
               page: 0,
             })
           }
@@ -78,7 +81,11 @@ export default function AdminBookingsPage() {
         <select
           value={filters.tour ?? ""}
           onChange={(e) =>
-            setFilters({ ...filters, tour: e.target.value || undefined, page: 0 })
+            setFilters({
+              ...filters,
+              tour: e.target.value || undefined,
+              page: 0,
+            })
           }
         >
           <option value="">All tours</option>
@@ -100,7 +107,7 @@ export default function AdminBookingsPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-muted">Loading bookings…</p>
+        <AdminTableSkeleton rows={8} cols={8} />
       ) : bookings.length === 0 ? (
         <p className="text-muted">No bookings match those filters.</p>
       ) : (
@@ -143,7 +150,9 @@ export default function AdminBookingsPage() {
                   <td>{b.travelersCount}</td>
                   <td>{formatPrice(b.totalCents, b.currency)}</td>
                   <td>
-                    <span className={`status-badge status-${b.status.toLowerCase()}`}>
+                    <span
+                      className={`status-badge status-${b.status.toLowerCase()}`}
+                    >
                       {STATUS_LABEL[b.status]}
                     </span>
                   </td>

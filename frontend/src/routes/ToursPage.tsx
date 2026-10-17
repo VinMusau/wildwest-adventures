@@ -8,6 +8,7 @@ import TourCard from "@/components/tour/TourCard";
 import { useTours, type TourFilters } from "@/features/tours/useTours";
 import { useDestinations } from "@/features/destinations/useDestinations";
 import { useTravelStyles } from "@/features/travel-styles/useTravelStyles";
+import TourCardSkeleton from "@/components/tour/TourCardSkeleton";
 
 const SORT_OPTIONS: Array<[string, string]> = [
   ["recommended", "Recommended"],
@@ -164,7 +165,7 @@ export default function ToursPage() {
                   <strong>
                     {
                       SORT_OPTIONS.find(
-                        ([k]) => k === (filters.sort ?? "recommended")
+                        ([k]) => k === (filters.sort ?? "recommended"),
                       )?.[1]
                     }
                   </strong>{" "}
@@ -214,7 +215,11 @@ export default function ToursPage() {
           </div>
 
           {isLoading ? (
-            <p className="text-muted">Loading journeys…</p>
+            <div className="tour-grid listing">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <TourCardSkeleton key={i} />
+              ))}
+            </div>
           ) : tours.length === 0 ? (
             <p className="text-muted">No journeys match those filters.</p>
           ) : (
