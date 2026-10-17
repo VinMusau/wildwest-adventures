@@ -17,6 +17,7 @@ import { ApiError } from "@/lib/api";
 import type { Availability, Booking, PaymentInitResponse, TravelerType } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/api";
+import { useToast } from "@/features/toast/useToast";
 
 const STEPS = ["Dates & travellers", "Your details", "Make it yours", "Review & pay"];
 
@@ -64,6 +65,7 @@ export default function BookingPage() {
   const [pendingBooking, setPendingBooking] = useState<Booking | null>(null);
   const [paymentData, setPaymentData] = useState<PaymentInitResponse | null>(null);
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const [step, setStep] = useState(1);
   const [draft, setDraft] = useState<Draft>(() => ({
@@ -142,6 +144,7 @@ export default function BookingPage() {
           paymentInit.mutate(booking.reference, {
             onSuccess: (data) => setPaymentData(data),
             onError: (err) => {
+              toast.error("Payment initialization failed", { description: err.message });
               setError(
                 err instanceof ApiError ? err.message : "Could not start payment"
               );
@@ -149,6 +152,7 @@ export default function BookingPage() {
           });
         },
         onError: (err) => {
+          toast.error("Booking creation failed", { description: err.message });
           setError(
             err instanceof ApiError ? err.message : "Could not create booking"
           );
@@ -450,8 +454,6 @@ export default function BookingPage() {
                       pendingBooking.currency,
                     )}
                     onSuccess={async () => {
-                      // Verify directly with Paystack — webhook is fire-and-forget and can
-                      // miss (ngrok restarts, backend reloads, network hiccups).
                       try {
                         await apiPost(
                           `/v1/bookings/${pendingBooking.reference}/verify-payment`,
@@ -463,11 +465,17 @@ export default function BookingPage() {
                         queryClient.invalidateQueries({
                           queryKey: ["bookings", "mine"],
                         });
+                        toast.success("Booking confirmed", {
+                          description: `Reference ${pendingBooking.reference}`,
+                        });
                       } catch (e) {
                         console.warn(
                           "Verify failed; webhook will reconcile",
                           e,
                         );
+                        toast.info("Payment received", {
+                          description: "Finalising your booking…",
+                        });
                       }
                       navigate(`/confirmed/${pendingBooking.reference}`, {
                         replace: true,

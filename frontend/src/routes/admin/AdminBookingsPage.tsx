@@ -15,6 +15,7 @@ import type {
   BookingAdminDetail,
   BookingStatus,
 } from "@/types";
+import { useToast } from "@/features/toast/useToast";
 
 const STATUS_OPTIONS: Array<{ value: "" | BookingStatus; label: string }> = [
   { value: "", label: "All statuses" },
@@ -37,6 +38,7 @@ export default function AdminBookingsPage() {
 
   const { data, isLoading } = useAdminBookings(filters);
   const { data: tours = [] } = useTours();
+  const toast = useToast();
 
   const bookings = data?.content ?? [];
   const total = data?.totalElements ?? 0;
@@ -209,6 +211,7 @@ function BookingDetailDrawer({
   const confirm = useConfirmBooking(reference);
   const cancel = useCancelBooking(reference);
   const refund = useRefundBooking(reference);
+  const toast = useToast();
 
   const anyBusy = confirm.isPending || cancel.isPending || refund.isPending;
 
@@ -314,7 +317,7 @@ function BookingDetailDrawer({
                       {booking.refundAmountCents != null
                         ? formatPrice(
                             booking.refundAmountCents,
-                            booking.currency
+                            booking.currency,
                           )
                         : "—"}
                     </dd>
@@ -334,7 +337,15 @@ function BookingDetailDrawer({
               <div className="admin-actions">
                 {booking.status === "PENDING" && (
                   <Button
-                    onClick={() => confirm.mutate()}
+                    onClick={() =>
+                      confirm.mutate(undefined, {
+                        onSuccess: () =>
+                          toast.success("Booking confirmed", {
+                            description: reference,
+                          }),
+                        onError: () => toast.error("Could not confirm booking"),
+                      })
+                    }
                     disabled={anyBusy}
                   >
                     Confirm booking
@@ -348,10 +359,16 @@ function BookingDetailDrawer({
                     disabled={anyBusy}
                     onClick={() => {
                       const reason = window.prompt(
-                        "Reason for cancellation (optional):"
+                        "Reason for cancellation (optional):",
                       );
                       if (reason === null) return; // user cancelled the prompt
-                      cancel.mutate(reason.trim() || undefined);
+                      cancel.mutate(reason.trim() || undefined, {
+                        onSuccess: () =>
+                          toast.success("Booking cancelled", {
+                            description: reference,
+                          }),
+                        onError: () => toast.error("Could not cancel booking"),
+                      });
                     }}
                   >
                     Cancel booking
@@ -364,13 +381,19 @@ function BookingDetailDrawer({
                     disabled={anyBusy}
                     onClick={() => {
                       const confirmed = window.confirm(
-                        `Refund ${formatPrice(
-                          booking.totalCents,
-                          booking.currency
-                        )} via Paystack? This releases the departure inventory and marks the booking cancelled.`
+                        `Refund ${formatPrice(booking.totalCents, booking.currency)} via Paystack?`,
                       );
                       if (!confirmed) return;
-                      refund.mutate();
+                      refund.mutate(undefined, {
+                        onSuccess: () =>
+                          toast.success("Refund issued", {
+                            description: `${formatPrice(booking.totalCents, booking.currency)} to ${booking.leadEmail}`,
+                          }),
+                        onError: () =>
+                          toast.error("Refund failed", {
+                            description: "Check the backend logs for details.",
+                          }),
+                      });
                     }}
                   >
                     Refund payment

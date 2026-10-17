@@ -5,10 +5,12 @@ import Footer from "@/components/layout/Footer";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { ApiError } from "@/lib/api";
+import { useToast } from "@/features/toast/useToast";
 
 export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [form, setForm] = useState({
     email: "",
@@ -27,10 +29,16 @@ export default function RegisterPage() {
     setError(null);
     setBusy(true);
     try {
-      await register(form);
+      const user = await register(form);
+      toast.success(`Welcome to Wild West Adventures, ${user.firstName}`, {
+        description: "Your account is ready.",
+      });
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong");
+      const message =
+        err instanceof ApiError ? err.message : "Something went wrong";
+      setError(message);
+      toast.error("Registration failed", { description: message });
     } finally {
       setBusy(false);
     }

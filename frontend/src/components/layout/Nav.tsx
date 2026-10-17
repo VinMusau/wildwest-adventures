@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/features/auth/AuthContext";
 import Logo from "./Logo";
+import { useToast } from "@/features/toast/useToast";
 
 interface NavProps {
   light?: boolean;
@@ -16,6 +17,7 @@ export default function Nav({ light = false }: NavProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const close = () => setOpen(false);
+  const toast = useToast();
 
   // Close the user dropdown when clicking outside it
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function Nav({ light = false }: NavProps) {
     logout();
     close();
     setMenuOpen(false);
+    toast.info("Signed out", { description: "See you again soon!" });
     navigate("/");
   };
 

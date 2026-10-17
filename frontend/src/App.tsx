@@ -21,6 +21,7 @@ import PaymentReturnPage from "@/routes/PaymentReturnPage";
 import DestinationsPage from "@/routes/DestinationsPage";
 import TravelStylesPage from "@/routes/TravelStylesPage";
 import StoryPage from "@/routes/StoryPage";
+import ToastProvider from "./features/toast/ToastProvider";
 
 import AdminLayout from "@/routes/admin/AdminLayout";
 import AdminDashboardPage from "@/routes/admin/AdminDashboardPage";
@@ -50,70 +51,72 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/journeys" element={<ToursPage />} />
-            <Route path="/journeys/:slug" element={<TourDetailPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/destinations" element={<DestinationsPage />} />
-            <Route path="/styles" element={<TravelStylesPage />} />
-            <Route path="/story" element={<StoryPage />} />
-            <Route
-              path="/book/:slug"
-              element={
-                <ProtectedRoute>
-                  <BookingPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/confirmed/:reference"
-              element={
-                <ProtectedRoute>
-                  <ConfirmationPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/account/bookings"
-              element={
-                <ProtectedRoute>
-                  <MyBookingsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/payment/return"
-              element={
-                <ProtectedRoute>
-                  <PaymentReturnPage />
-                </ProtectedRoute>
-              }
-            />
+      <ToastProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/journeys" element={<ToursPage />} />
+              <Route path="/journeys/:slug" element={<TourDetailPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/destinations" element={<DestinationsPage />} />
+              <Route path="/styles" element={<TravelStylesPage />} />
+              <Route path="/story" element={<StoryPage />} />
+              <Route
+                path="/book/:slug"
+                element={
+                  <ProtectedRoute>
+                    <BookingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/confirmed/:reference"
+                element={
+                  <ProtectedRoute>
+                    <ConfirmationPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/account/bookings"
+                element={
+                  <ProtectedRoute>
+                    <MyBookingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment/return"
+                element={
+                  <ProtectedRoute>
+                    <PaymentReturnPage />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboardPage />} />
-              <Route path="tours" element={<AdminToursPage />} />
-              <Route path="tours/new" element={<AdminTourEditPage />} />
-              <Route path="tours/:slug/edit" element={<AdminTourEditPage />} />
-              <Route path="bookings" element={<AdminBookingsPage />} />
-              <Route path="customers" element={<AdminCustomersPage />} />
-            </Route>
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboardPage />} />
+                <Route path="tours" element={<AdminToursPage />} />
+                <Route path="tours/new" element={<AdminTourEditPage />} />
+                <Route path="tours/:slug/edit" element={<AdminTourEditPage />} />
+                <Route path="bookings" element={<AdminBookingsPage />} />
+                <Route path="customers" element={<AdminCustomersPage />} />
+              </Route>
 
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

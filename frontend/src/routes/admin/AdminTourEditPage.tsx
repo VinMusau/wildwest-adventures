@@ -12,6 +12,7 @@ import {
 } from "@/features/admin/useAdminTours";
 import { ApiError } from "@/lib/api";
 import type { AdminItineraryDay, TourWriteInput } from "@/types";
+import { useToast } from "@/features/toast/useToast";
 
 const EMPTY: TourWriteInput = {
   title: "",
@@ -36,6 +37,7 @@ export default function AdminTourEditPage() {
   const { slug } = useParams<{ slug: string }>();
   const isNew = slug === "new" || !slug;
   const navigate = useNavigate();
+  const toast = useToast();
 
   const { data: existing, isLoading: loadingExisting } = useAdminTour(isNew ? undefined : slug);
   const { data: destinations = [] } = useDestinations();
@@ -156,10 +158,15 @@ export default function AdminTourEditPage() {
 
     mutation.mutate(payload, {
       onSuccess: (saved) => {
+        toast.success(`Tour ${isNew ? "created" : "updated"}`, {
+          description: saved.title,
+        });
         navigate(`/admin/tours/${saved.slug}/edit`);
       },
       onError: (err) => {
-        setError(err instanceof ApiError ? err.message : "Could not save tour");
+        const message = err instanceof ApiError ? err.message : "Could not save tour";
+        setError(message);
+        toast.error("Could not save tour", { description: message });
       },
     });
   };

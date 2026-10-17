@@ -3057,3 +3057,110 @@ a.style-card { text-decoration: none; }
   .story-stats-inner { grid-template-columns: 1fr 1fr; gap: 30px; }
   .story-guides { grid-template-columns: 1fr 1fr; gap: 16px; }
 }
+
+/* ---------- Toasts ---------- */
+.toast-viewport {
+  position: fixed;
+  top: 100px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+  pointer-events: none;
+  max-width: 380px;
+}
+
+.toast {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  background: #1c241f;
+  color: white;
+  padding: 14px 16px;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  animation: toast-in-right 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.toast-leaving {
+  animation: toast-out-right 0.2s ease-in forwards;
+}
+
+.toast-icon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.toast-success .toast-icon { color: #6dd3a1; }
+.toast-error .toast-icon   { color: #f58c8c; }
+.toast-info .toast-icon    { color: #8fc4dc; }
+
+.toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.toast-body strong {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.005em;
+}
+.toast-body small {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.toast-close {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 2px;
+  display: grid;
+  place-items: center;
+  transition: color 0.12s;
+}
+.toast-close:hover { color: white; }
+
+@keyframes toast-in-right {
+  from { transform: translateX(28px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes toast-out-right {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(28px); opacity: 0; }
+}
+
+@media (max-width: 720px) {
+  .toast-viewport {
+    top: 76px;
+    left: 12px;
+    right: 12px;
+    max-width: none;
+  }
+  .toast {
+    animation: toast-in-down 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+  .toast-leaving {
+    animation: toast-out-down 0.2s ease-in forwards;
+  }
+
+  @keyframes toast-in-down {
+    from { transform: translateY(-18px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+  }
+  @keyframes toast-out-down {
+    from { transform: translateY(0);     opacity: 1; }
+    to   { transform: translateY(-18px); opacity: 0; }
+  }
+}

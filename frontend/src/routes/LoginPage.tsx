@@ -5,11 +5,13 @@ import Footer from "@/components/layout/Footer";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { ApiError } from "@/lib/api";
+import { useToast } from "@/features/toast/useToast";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
   const from = (location.state as { from?: Location } | null)?.from?.pathname ?? "/";
 
   const [email, setEmail] = useState("");
@@ -22,10 +24,16 @@ export default function LoginPage() {
     setError(null);
     setBusy(true);
     try {
-      await login({ email, password });
+      const user = await login({ email, password });
+      toast.success(`Welcome back, ${user.firstName}`, {
+        description: "Your journeys are waiting.",
+      });
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong");
+      const message =
+        err instanceof ApiError ? err.message : "Something went wrong";
+      setError(message);
+      toast.error("Couldn't sign you in", { description: message });
     } finally {
       setBusy(false);
     }

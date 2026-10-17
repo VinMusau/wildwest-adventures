@@ -3,14 +3,19 @@ import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import { useAdminTours, useDeleteTour } from "@/features/admin/useAdminTours";
 import { formatPrice } from "@/lib/format";
+import { useToast } from "@/features/toast/useToast";
 
 export default function AdminToursPage() {
   const { data: tours = [], isLoading } = useAdminTours();
   const deleteTour = useDeleteTour();
+  const toast = useToast();
 
   const handleDelete = (slug: string, title: string) => {
     if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
-    deleteTour.mutate(slug);
+    deleteTour.mutate(slug, {
+      onSuccess: () => toast.success("Tour deleted", { description: title }),
+      onError: () => toast.error("Could not delete tour"),
+    });
   };
 
   return (
