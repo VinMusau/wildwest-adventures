@@ -4,14 +4,25 @@ import Icon from "@/components/ui/Icon";
 import { useAdminTours, useDeleteTour } from "@/features/admin/useAdminTours";
 import { formatPrice } from "@/lib/format";
 import { useToast } from "@/features/toast/useToast";
+import { useConfirm } from "@/features/confirm/useConfirm";
 
 export default function AdminToursPage() {
   const { data: tours = [], isLoading } = useAdminTours();
   const deleteTour = useDeleteTour();
   const toast = useToast();
+  const confirm = useConfirm();
 
-  const handleDelete = (slug: string, title: string) => {
-    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  const handleDelete = async (slug: string, title: string) => {
+    const ok = await confirm({
+      title: `Delete "${title}"?`,
+      description:
+        "This will permanently remove the tour and all associated itinerary data. This action cannot be undone.",
+      confirmLabel: "Delete tour",
+      variant: "danger",
+    });
+
+    if (!ok) return;
+
     deleteTour.mutate(slug, {
       onSuccess: () => toast.success("Tour deleted", { description: title }),
       onError: () => toast.error("Could not delete tour"),

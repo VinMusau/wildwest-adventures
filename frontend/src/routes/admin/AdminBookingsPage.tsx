@@ -16,6 +16,7 @@ import type {
   BookingStatus,
 } from "@/types";
 import { useToast } from "@/features/toast/useToast";
+import { useConfirm } from "@/features/confirm/useConfirm";
 
 const STATUS_OPTIONS: Array<{ value: "" | BookingStatus; label: string }> = [
   { value: "", label: "All statuses" },
@@ -39,6 +40,7 @@ export default function AdminBookingsPage() {
   const { data, isLoading } = useAdminBookings(filters);
   const { data: tours = [] } = useTours();
   const toast = useToast();
+  const confirmModal = useConfirm();
 
   const bookings = data?.content ?? [];
   const total = data?.totalElements ?? 0;
@@ -212,6 +214,7 @@ function BookingDetailDrawer({
   const cancel = useCancelBooking(reference);
   const refund = useRefundBooking(reference);
   const toast = useToast();
+  const confirmModal = useConfirm();
 
   const anyBusy = confirm.isPending || cancel.isPending || refund.isPending;
 
@@ -357,12 +360,18 @@ function BookingDetailDrawer({
                   <Button
                     variant="secondary"
                     disabled={anyBusy}
-                    onClick={() => {
-                      const reason = window.prompt(
-                        "Reason for cancellation (optional):",
-                      );
-                      if (reason === null) return; // user cancelled the prompt
-                      cancel.mutate(reason.trim() || undefined, {
+                    onClick={async () => {
+                      const reason = await confirmModal({
+                        title: "Cancel booking?",
+                        description: `Booking ${reference} will be cancelled and the inventory released. You are adviced to provide a reason.`,
+                        confirmLabel: "Cancel booking",
+                        variant: "danger",
+                        input: { placeholder: "Reason (optional)" },
+                      });
+
+                      if (reason === null) return; // user pressed ESC or Cancel
+
+                      cancel.mutate(reason || undefined, {
                         onSuccess: () =>
                           toast.success("Booking cancelled", {
                             description: reference,
@@ -379,20 +388,19 @@ function BookingDetailDrawer({
                   <Button
                     variant="secondary"
                     disabled={anyBusy}
-                    onClick={() => {
-                      const confirmed = window.confirm(
-                        `Refund ${formatPrice(booking.totalCents, booking.currency)} via Paystack?`,
-                      );
-                      if (!confirmed) return;
+                    onClick={async () => {
+                      const ok = await confirmModal({
+                        title: "Refund payment?",
+                        description: `Refund ${formatPrice(booking.totalCents, booking.currency)} via Paystack? This releases the departure inventory and marks the booking cancelled.`,
+                        confirmLabel: "Refund",
+                        variant: "danger",
+                      });
+
+                      if (!ok) return;
+
                       refund.mutate(undefined, {
-                        onSuccess: () =>
-                          toast.success("Refund issued", {
-                            description: `${formatPrice(booking.totalCents, booking.currency)} to ${booking.leadEmail}`,
-                          }),
-                        onError: () =>
-                          toast.error("Refund failed", {
-                            description: "Check the backend logs for details.",
-                          }),
+                        onSuccess: () => toast.success("Refund issued"),
+                        onError: () => toast.error("Refund failed"),
                       });
                     }}
                   >

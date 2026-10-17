@@ -29,6 +29,7 @@ import AdminToursPage from "@/routes/admin/AdminToursPage";
 import AdminTourEditPage from "@/routes/admin/AdminTourEditPage";
 import AdminBookingsPage from "@/routes/admin/AdminBookingsPage";
 import AdminCustomersPage from "@/routes/admin/AdminCustomersPage";
+import ConfirmProvider from "./features/confirm/ConfirmProvider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,70 +53,72 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/journeys" element={<ToursPage />} />
-              <Route path="/journeys/:slug" element={<TourDetailPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/destinations" element={<DestinationsPage />} />
-              <Route path="/styles" element={<TravelStylesPage />} />
-              <Route path="/story" element={<StoryPage />} />
-              <Route
-                path="/book/:slug"
-                element={
-                  <ProtectedRoute>
-                    <BookingPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/confirmed/:reference"
-                element={
-                  <ProtectedRoute>
-                    <ConfirmationPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/account/bookings"
-                element={
-                  <ProtectedRoute>
-                    <MyBookingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/payment/return"
-                element={
-                  <ProtectedRoute>
-                    <PaymentReturnPage />
-                  </ProtectedRoute>
-                }
-              />
+        <ConfirmProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/journeys" element={<ToursPage />} />
+                <Route path="/journeys/:slug" element={<TourDetailPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/destinations" element={<DestinationsPage />} />
+                <Route path="/styles" element={<TravelStylesPage />} />
+                <Route path="/story" element={<StoryPage />} />
+                <Route
+                  path="/book/:slug"
+                  element={
+                    <ProtectedRoute>
+                      <BookingPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/confirmed/:reference"
+                  element={
+                    <ProtectedRoute>
+                      <ConfirmationPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/account/bookings"
+                  element={
+                    <ProtectedRoute>
+                      <MyBookingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/payment/return"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentReturnPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<AdminDashboardPage />} />
-                <Route path="tours" element={<AdminToursPage />} />
-                <Route path="tours/new" element={<AdminTourEditPage />} />
-                <Route path="tours/:slug/edit" element={<AdminTourEditPage />} />
-                <Route path="bookings" element={<AdminBookingsPage />} />
-                <Route path="customers" element={<AdminCustomersPage />} />
-              </Route>
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<AdminDashboardPage />} />
+                  <Route path="tours" element={<AdminToursPage />} />
+                  <Route path="tours/new" element={<AdminTourEditPage />} />
+                  <Route path="tours/:slug/edit" element={<AdminTourEditPage />} />
+                  <Route path="bookings" element={<AdminBookingsPage />} />
+                  <Route path="customers" element={<AdminCustomersPage />} />
+                </Route>
 
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </ConfirmProvider>
       </ToastProvider>
     </QueryClientProvider>
   );
