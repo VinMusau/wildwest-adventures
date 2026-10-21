@@ -3285,3 +3285,157 @@ a.style-card { text-decoration: none; }
 .admin-table th .skeleton {
   height: 12px;
 }
+
+.whatsapp-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  background-color: #25D366;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+  z-index: 100;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.whatsapp-fab:hover {
+  background-color: #128C7E;
+  transform: scale(1.05);
+}
+
+@media (max-width: 720px) {
+  .whatsapp-fab {
+    bottom: 16px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+  }
+  .whatsapp-fab svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Force table to not be like tables anymore */
+  .admin-table, .admin-table thead, .admin-table tbody, .admin-table th, .admin-table td, .admin-table tr { 
+    display: block; 
+  }
+  
+  /* Hide table headers */
+  .admin-table thead tr { 
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  .admin-table tr { 
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    background: white;
+    padding: 12px;
+  }
+  
+  .admin-table td { 
+    border: none;
+    border-bottom: 1px solid var(--line); 
+    position: relative;
+    padding: 12px 0 12px 120px; 
+    text-align: right;
+    min-height: 44px;
+  }
+  .admin-table td:last-child {
+    border-bottom: 0;
+  }
+  
+  /* Create the label for each cell */
+  .admin-table td::before { 
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 110px;
+    padding-right: 10px; 
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--muted);
+    top: 14px;
+  }
+
+  /* Hide labels for the action buttons */
+  .admin-table td.admin-cell-actions::before {
+    display: none;
+  }
+  .admin-table td.admin-cell-actions {
+    padding: 16px 0 0 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 8px;
+  }
+}
+
+.not-found-shell {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px;
+}
+.not-found-shell h1 {
+  font-size: clamp(48px, 6vw, 72px);
+  max-width: 700px;
+  margin: 16px 0;
+}
+.not-found-shell p {
+  color: var(--muted);
+  max-width: 500px;
+  font-size: 16px;
+  margin-bottom: 32px;
+}
+.not-found-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px;
+  background: white;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px;
+}
+.empty-state h3 {
+  font-family: var(--serif);
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+.empty-state p {
+  color: var(--muted);
+  margin-bottom: 24px;
+  max-width: 320px;
+}

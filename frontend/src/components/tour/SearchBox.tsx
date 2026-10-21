@@ -15,7 +15,7 @@ export default function SearchBox() {
         <span>When?</span>
         <div>
           <Icon name="calendar" />
-          <input placeholder="Choose dates" aria-label="Dates" />
+          <input placeholder="Choose dates" aria-label="Dates" type="date" />
         </div>
       </label>
       <label>

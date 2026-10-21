@@ -1,6 +1,7 @@
 import { tokenStorage, AUTH_EXPIRED_EVENT } from "@/features/auth/storage";
 
 const BASE = "/api";
+let isHandling401 = false;
 
 interface ApiErrorShape {
   status: number;
@@ -35,8 +36,16 @@ async function request<T>(
   const res = await fetch(`${BASE}${path}`, { ...init, headers });
 
   if (res.status === 401) {
-    tokenStorage.clear();
-    window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+    if (!isHandling401) {
+      isHandling401 = true
+      tokenStorage.clear();
+
+      const isInitialCheck = path.includes("/auth/me");
+      window.dispatchEvent(
+        new CustomEvent(AUTH_EXPIRED_EVENT, { detail: { silent: isInitialCheck } })
+      );
+      setTimeout(() => { isHandling401 = false }, 3000);
+    }
     throw new ApiError({ status: 401, message: "Session expired" });
   }
 

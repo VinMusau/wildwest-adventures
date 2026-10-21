@@ -11,6 +11,7 @@ import {
 import { useAdminDashboard } from "@/features/admin/useAdminDashboard";
 import { formatPrice } from "@/lib/format";
 import type { BookingStatus } from "@/types";
+import AdminDashboardSkeleton from "@/components/admin/AdminDashboardSkeleton";
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   PENDING: "Pending",
@@ -23,13 +24,7 @@ export default function AdminDashboardPage() {
   const { data, isLoading } = useAdminDashboard();
 
   if (isLoading || !data) {
-    return (
-      <div className="admin-page">
-        <span className="eyebrow">Operator console</span>
-        <h1>Dashboard</h1>
-        <p className="text-muted">Loading…</p>
-      </div>
-    );
+    return <AdminDashboardSkeleton />;
   }
 
   const { kpis, revenueSeries, topTours, recentBookings } = data;

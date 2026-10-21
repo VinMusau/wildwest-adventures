@@ -31,25 +31,36 @@ export default function TourDetailPage() {
     );
   }
 
-  if (error || !tour) {
-    return (
-      <main className="light-page">
-        <Nav />
-        <div className="detail-layout">
-          <div>
-            <h1>Journey not found</h1>
-            <p className="text-muted">
-              The journey you're looking for doesn't exist or has been moved.
-            </p>
-            <Link to="/journeys" className="button primary">
-              Back to all journeys
-            </Link>
-          </div>
-        </div>
-        <Footer />
-      </main>
-    );
-  }
+   if (error || !tour) {
+     return (
+       <main className="light-page">
+         <Nav />
+         <div
+           className="section"
+           style={{
+             minHeight: "60vh",
+             display: "flex",
+             justifyContent: "center",
+             alignItems: "center",
+           }}
+         >
+           <div className="empty-state" style={{ border: "none" }}>
+             <div className="empty-state-icon">
+               <Icon name="map" size={32} />
+             </div>
+             <h3>Journey not found</h3>
+             <p>
+               The journey you're looking for doesn't exist or has been moved.
+             </p>
+             <Link to="/journeys" className="button primary">
+               Back to all journeys
+             </Link>
+           </div>
+         </div>
+         <Footer />
+       </main>
+     );
+   }
 
   const gallery = tour.images.length > 0
     ? tour.images

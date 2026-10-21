@@ -34,11 +34,11 @@ export default function BookingCard({ priceFrom, bookHref }: BookingCardProps) {
         <Icon name="shield" /> No payment required today
       </p>
       <hr />
-      <strong>Need a little help?</strong>
+      <strong>Need a little help?   </strong>
       <small>
-        Speak to a destination specialist
+        Speak to a destination expert 
         <br />
-        +1 888 555 0148
+        +254 797 779 935
       </small>
     </aside>
   );

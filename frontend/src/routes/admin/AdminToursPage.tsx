@@ -63,8 +63,10 @@ export default function AdminToursPage() {
             <tbody>
               {tours.map((tour) => (
                 <tr key={tour.slug}>
-                  <td className="admin-cell-num">{tour.displayOrder}</td>
-                  <td>
+                  <td data-label="Order" className="admin-cell-num">
+                    {tour.displayOrder}
+                  </td>
+                  <td data-label="Title">
                     <Link
                       to={`/admin/tours/${tour.slug}/edit`}
                       className="admin-link"
@@ -73,10 +75,12 @@ export default function AdminToursPage() {
                     </Link>
                     <small className="admin-slug">{tour.slug}</small>
                   </td>
-                  <td>{tour.destinationName}</td>
-                  <td>{tour.durationDays} days</td>
-                  <td>{formatPrice(tour.priceCents, tour.currency)}</td>
-                  <td>
+                  <td data-label="Destination">{tour.destinationName}</td>
+                  <td data-label="Duration">{tour.durationDays} days</td>
+                  <td data-label="Price">
+                    {formatPrice(tour.priceCents, tour.currency)}
+                  </td>
+                  <td data-label="Featured">
                     {tour.featured ? (
                       <span className="badge-yes">Yes</span>
                     ) : (

@@ -221,7 +221,18 @@ export default function ToursPage() {
               ))}
             </div>
           ) : tours.length === 0 ? (
-            <p className="text-muted">No journeys match those filters.</p>
+            <div className="empty-state">
+              <div className="empty-state-icon">
+                <Icon name="search" size={32} />
+              </div>
+              <h3>No journeys found</h3>
+              <p>
+                We couldn't find any journeys matching your current filters.
+              </p>
+              <Button variant="secondary" onClick={() => setSearchParams({})}>
+                Clear all filters
+              </Button>
+            </div>
           ) : (
             <div className="tour-grid listing">
               {tours.map((tour) => (
