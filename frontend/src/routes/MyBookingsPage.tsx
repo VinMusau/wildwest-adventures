@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/format";
 import type { BookingStatus } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/api";
+import BookingRowSkeleton from "@/components/tour/BookingRowSkeleton";
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   PENDING: "Pending",
@@ -16,7 +17,6 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
 
 export default function MyBookingsPage() {
   const { data: bookings = [], isLoading } = useMyBookings();
-
   const queryClient = useQueryClient();
 
   return (
@@ -35,7 +35,12 @@ export default function MyBookingsPage() {
         </h1>
 
         {isLoading ? (
-          <p className="text-muted">Loading your bookings…</p>
+          /* THE FIX: Render skeleton rows instead of text */
+          <div className="bookings-list">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <BookingRowSkeleton key={i} />
+            ))}
+          </div>
         ) : bookings.length === 0 ? (
           <div>
             <p className="text-muted">You don't have any bookings yet.</p>
