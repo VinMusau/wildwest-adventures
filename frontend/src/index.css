@@ -1336,6 +1336,23 @@ footer .logo-img {
   margin-top: 7px
 }
 
+.booking-card input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--sans);
+  color: var(--ink);
+}
+
+/* Optional: style the calendar picker icon to match your theme */
+.booking-card input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: 0.2s;
+}
+.booking-card input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 .stepper {
   height: 48px;
   border: 1px solid var(--line);

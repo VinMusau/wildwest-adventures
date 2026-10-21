@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
-// import { Elements } from "@stripe/react-stripe-js";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import Nav from "@/components/layout/Nav";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
@@ -9,11 +8,9 @@ import { useAvailability } from "@/features/booking/useAvailability";
 import { useCreateBooking } from "@/features/booking/useCreateBooking";
 import { usePaymentInit } from "@/features/booking/usePaymentInit";
 import PaystackPayment from "@/features/booking/PaystackPayment";
-// import PaymentForm from "@/features/booking/PaymentForm";
 import { useAuth } from "@/features/auth/AuthContext";
 import { formatPrice } from "@/lib/format";
 import { ApiError } from "@/lib/api";
-// import { stripePromise } from "@/lib/stripe";
 import type { Availability, Booking, PaymentInitResponse, TravelerType } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/api";
@@ -42,21 +39,17 @@ interface Draft {
   addons: string[];
 }
 
-const INITIAL: Draft = {
-  departureDate: null,
-  travelersCount: 2,
-  travelerDetails: [
-    { firstName: "", lastName: "", travelerType: "ADULT" },
-    { firstName: "", lastName: "", travelerType: "ADULT" },
-  ],
-  lead: { firstName: "", lastName: "", email: "", phone: "", country: "United States" },
-  addons: [],
-};
-
 export default function BookingPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+
+  const urlDate = searchParams.get("date");
+  const urlGuests = searchParams.get("guests");
+  
+  // Parse the string param to a number, defaulting to 2
+  const parsedGuests = Math.max(1, parseInt(urlGuests || "2", 10));
 
   const { data: tour, isLoading: tourLoading } = useTour(slug);
   const { data: availability = [], isLoading: availLoading } = useAvailability(slug);
@@ -69,15 +62,29 @@ export default function BookingPage() {
   const toast = useToast();
 
   const [step, setStep] = useState(1);
-  const [draft, setDraft] = useState<Draft>(() => ({
-    ...INITIAL,
-    lead: {
-      ...INITIAL.lead,
-      firstName: user?.firstName ?? "",
-      lastName: user?.lastName ?? "",
-      email: user?.email ?? "",
-    },
-  }));
+  
+  const [draft, setDraft] = useState<Draft>(() => {
+    const initialTravelers = Array.from({ length: parsedGuests }, () => ({
+      firstName: "",
+      lastName: "",
+      travelerType: "ADULT" as TravelerType,
+    }));
+    
+    return {
+      departureDate: urlDate || null, 
+      travelersCount: parsedGuests,   
+      travelerDetails: initialTravelers,
+      lead: {
+        firstName: user?.firstName ?? "",
+        lastName: user?.lastName ?? "",
+        email: user?.email ?? "",
+        phone: "",
+        country: "United States",
+      },
+      addons: [],
+    };
+  });
+
   const [error, setError] = useState<string | null>(null);
 
   const selectedDate: Availability | undefined = useMemo(
@@ -114,12 +121,12 @@ export default function BookingPage() {
       const allTravelersFilled = draft.travelerDetails.every(
         (t) => t.firstName.trim() && t.lastName.trim()
       );
-      return firstName.trim() && lastName.trim() && email.includes("@") && allTravelersFilled;
+      return Boolean(firstName.trim() && lastName.trim() && email.includes("@") && allTravelersFilled);
     }
     return true;
   })();
 
-    const next = () => {
+  const next = () => {
     setError(null);
 
     if (step < 4) {
@@ -131,7 +138,7 @@ export default function BookingPage() {
     if (!draft.departureDate || !tour) return;
     if (pendingBooking) return; // PaymentForm handles it from here
 
-        createBooking.mutate(
+    createBooking.mutate(
       {
         tourSlug: tour.slug,
         departureDate: draft.departureDate,
@@ -164,13 +171,13 @@ export default function BookingPage() {
 
   const updateTravelersCount = (delta: number) => {
     setDraft((prev) => {
-      const next = Math.max(1, Math.min(8, prev.travelersCount + delta));
+      const nextCount = Math.max(1, Math.min(8, prev.travelersCount + delta));
       const details = [...prev.travelerDetails];
-      while (details.length < next) {
+      while (details.length < nextCount) {
         details.push({ firstName: "", lastName: "", travelerType: "ADULT" });
       }
-      while (details.length > next) details.pop();
-      return { ...prev, travelersCount: next, travelerDetails: details };
+      while (details.length > nextCount) details.pop();
+      return { ...prev, travelersCount: nextCount, travelerDetails: details };
     });
   };
 
