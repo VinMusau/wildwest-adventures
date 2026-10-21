@@ -803,10 +803,11 @@ h2 {
   color: var(--muted)
 }
 
+/* ---------- Footer ---------- */
 footer {
   background: #1c241f;
   color: white;
-  padding: 72px max(24px, calc((100% - 1232px)/2)) 24px
+  padding: 72px max(24px, calc((100% - 1232px) / 2)) 24px;
 }
 
 footer .logo-img {
@@ -817,57 +818,112 @@ footer .logo-img {
   display: grid;
   grid-template-columns: 2fr repeat(3, 1fr);
   gap: 64px;
-  padding-bottom: 60px
+  padding-bottom: 60px;
 }
 
 .footer-top p {
-  color: rgba(255, 255, 255, .55);
+  color: rgba(255, 255, 255, 0.55);
   max-width: 310px;
-  margin: 24px 0
+  margin: 24px 0;
+  line-height: 1.6;
 }
 
 .socials {
   display: flex;
-  gap: 10px
+  gap: 12px;
 }
 
-.socials button {
-  border: 1px solid rgba(255, 255, 255, .3);
+.socials a {
+  border: 1px solid rgba(255, 255, 255, 0.3);
   background: transparent;
   color: white;
   border-radius: 50%;
   width: 38px;
-  height: 38px
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+  text-decoration: none;
+}
+
+.socials a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: translateY(-2px);
 }
 
 .footer-col {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  align-items: flex-start
+  gap: 12px;
+  align-items: flex-start;
 }
 
 .footer-col strong {
   font-size: 11px;
-  letter-spacing: .14em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin-bottom: 12px
+  margin-bottom: 4px;
+  color: white;
 }
 
-.footer-col button {
-  border: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, .6);
-  padding: 0
+.footer-col a {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.15s;
+}
+
+.footer-col a:hover {
+  color: white;
 }
 
 .footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, .15);
-  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 24px;
   display: flex;
   justify-content: space-between;
-  color: rgba(255, 255, 255, .45);
-  font-size: 10px
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+}
+
+.footer-bottom a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.footer-bottom a:hover {
+  color: white;
+}
+
+@media (max-width: 1024px) {
+  .footer-top {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+  .footer-col:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .footer-top {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+  .footer-top > div:first-child {
+    grid-column: span 2;
+  }
+  .footer-col:last-child {
+    display: flex;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+  }
 }
 
 .listing-hero {
@@ -3286,10 +3342,78 @@ a.style-card { text-decoration: none; }
   height: 12px;
 }
 
-.whatsapp-fab {
+/* Move fixed positioning to the wrapper */
+.whatsapp-container {
   position: fixed;
   bottom: 24px;
   right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 100;
+}
+
+/* Tooltip Styling */
+/* Update existing tooltip class */
+.whatsapp-tooltip {
+  background-color: white;
+  color: #333333;
+  padding: 8px 32px 8px 14px; /* Added right padding for the close button */
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  animation: floatHorizontal 2.5s ease-in-out infinite;
+  /* pointer-events: none; <-- REMOVE THIS LINE */
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+
+/* Add styles for the new close button */
+.tooltip-close-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #888888;
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.tooltip-close-btn:hover {
+  color: #333333;
+}
+
+/* Ensure the tail still points correctly */
+.whatsapp-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  border-width: 6px 0 6px 6px;
+  border-style: solid;
+  border-color: transparent transparent transparent white;
+}
+
+/* Smooth floating animation */
+@keyframes floatHorizontal {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-6px); }
+}
+
+/* Button Styling (Removed fixed positioning) */
+.whatsapp-fab {
   width: 60px;
   height: 60px;
   background-color: #25D366;
@@ -3299,8 +3423,12 @@ a.style-card { text-decoration: none; }
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
-  z-index: 100;
   transition: transform 0.2s, background-color 0.2s;
+}
+
+.whatsapp-icon {
+  width: 32px;
+  height: 32px;
 }
 
 .whatsapp-fab:hover {
@@ -3309,15 +3437,25 @@ a.style-card { text-decoration: none; }
 }
 
 @media (max-width: 720px) {
-  .whatsapp-fab {
+  .whatsapp-container {
     bottom: 16px;
     right: 16px;
+    gap: 12px;
+  }
+  
+  .whatsapp-tooltip {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .whatsapp-fab {
     width: 52px;
     height: 52px;
   }
-  .whatsapp-fab svg {
-    width: 24px;
-    height: 24px;
+  
+  .whatsapp-icon {
+    width: 28px;
+    height: 28px;
   }
 }
 
@@ -3438,4 +3576,53 @@ a.style-card { text-decoration: none; }
   color: var(--muted);
   margin-bottom: 24px;
   max-width: 320px;
+}
+
+.legal-shell {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 80px 24px 120px;
+}
+
+.legal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: 40px;
+}
+.legal-back:hover {
+  color: var(--ink);
+}
+.legal-back .icon {
+  transform: rotate(180deg);
+}
+
+.legal-shell h1 {
+  font-size: clamp(40px, 5vw, 56px);
+  margin: 8px 0;
+}
+
+.legal-meta {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal-body h2 {
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 32px 0 12px;
+}
+
+.legal-body p {
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 15px;
+  margin-bottom: 16px;
 }

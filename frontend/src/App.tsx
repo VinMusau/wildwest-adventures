@@ -33,6 +33,7 @@ import ProtectedRoute from "@/features/auth/ProtectedRoute";
 import ToastProvider from "./features/toast/ToastProvider";
 import ConfirmProvider from "./features/confirm/ConfirmProvider";
 import WhatsAppButton from "./components/ui/WhatsAppButton";
+import LegalPage from "./routes/LegalPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +67,9 @@ function AppLayout() {
         <Route path="/story" element={<StoryPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/privacy" element={<LegalPage />} />
+        <Route path="/terms" element={<LegalPage />} />
+        <Route path="/cookies" element={<LegalPage />} />
 
         {/* Protected Customer Routes */}
         <Route path="/book/:slug" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
