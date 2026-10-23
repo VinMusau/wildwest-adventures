@@ -36,4 +36,6 @@ public interface AvailabilityRepository extends JpaRepository<Availability, UUID
             @Param("slug") String slug,
             @Param("date") LocalDate date
     );
+
+    List<Availability> findByTourSlugOrderByDepartureDateAsc(String slug);
 }

@@ -9,6 +9,9 @@ import com.wildwest.api.destination.DestinationRepository;
 import com.wildwest.api.tour.*;
 import com.wildwest.api.travelstyle.TravelStyle;
 import com.wildwest.api.travelstyle.TravelStyleRepository;
+import com.wildwest.api.availability.Availability;
+import com.wildwest.api.availability.AvailabilityRepository;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 @Service
 @Transactional
@@ -25,15 +29,18 @@ public class AdminTourService {
     private final TourRepository tourRepository;
     private final DestinationRepository destinationRepository;
     private final TravelStyleRepository travelStyleRepository;
+    private final AvailabilityRepository availabilityRepository;
 
     public AdminTourService(
             TourRepository tourRepository,
             DestinationRepository destinationRepository,
-            TravelStyleRepository travelStyleRepository
+            TravelStyleRepository travelStyleRepository,
+            AvailabilityRepository availabilityRepository
     ) {
         this.tourRepository = tourRepository;
         this.destinationRepository = destinationRepository;
         this.travelStyleRepository = travelStyleRepository;
+        this.availabilityRepository = availabilityRepository;
     }
 
     @Transactional(readOnly = true)
@@ -225,5 +232,37 @@ public class AdminTourService {
         if (s == null) return null;
         String t = s.trim();
         return t.isEmpty() ? null : t;
+    }
+
+    public Availability addAvailability(String slug, LocalDate date, Integer capacity) {
+        Tour tour = loadTour(slug);
+
+        // Check if date already exists
+        boolean exists = availabilityRepository.findByTourSlugOrderByDepartureDateAsc(slug)
+                .stream().anyMatch(a -> a.getDepartureDate().equals(date));
+        if (exists) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Date already exists");
+        }
+
+        Availability av = new Availability();
+        av.setTour(tour);
+        av.setDepartureDate(date);
+        av.setCapacity(capacity);
+        av.setBooked(0);
+        av.setStatus("OPEN");
+        av.setCurrency(tour.getCurrency());
+        // priceCents is null, so it falls back to the Tour's price
+
+        return availabilityRepository.save(av);
+    }
+
+    public void deleteAvailability(UUID id) {
+        Availability av = availabilityRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Date not found"));
+
+        if (av.getBooked() > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete a date that already has bookings");
+        }
+        availabilityRepository.delete(av);
     }
 }
