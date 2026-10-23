@@ -3,13 +3,17 @@ package com.wildwest.api.admin;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminDetail;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminSummary;
 import com.wildwest.api.admin.AdminTourDtos.TourWriteRequest;
+import com.wildwest.api.image.CloudinaryService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/admin/tours")
@@ -17,9 +21,11 @@ import java.util.Map;
 public class AdminTourController {
 
     private final AdminTourService service;
+    private final CloudinaryService cloudinaryService;
 
-    public AdminTourController(AdminTourService service) {
+    public AdminTourController(AdminTourService service, CloudinaryService cloudinaryService) {
         this.service = service;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @GetMapping
@@ -55,5 +61,26 @@ public class AdminTourController {
     @GetMapping("/_ping")
     public Map<String, String> ping() {
         return Map.of("status", "ok", "message", "admin tours reachable");
+    }
+
+    @PostMapping("/upload-image")
+    public Map<String, String> uploadImage(@RequestParam("file") MultipartFile file) {
+        // Basic Validation
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
+        }
+        if (file.getSize() > 5 * 1024 * 1024) { // 5MB limit
+            throw new ResponseStatusException(HttpStatus.CONTENT_TOO_LARGE, "File too large");
+        }
+        if (!file.getContentType().startsWith("image/")) {
+            throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Only image files are allowed");
+        }
+
+        try {
+            String imageUrl = cloudinaryService.uploadImage(file, "wildwest_adventures/tours");
+            return Map.of("url", imageUrl);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload image");
+        }
     }
 }

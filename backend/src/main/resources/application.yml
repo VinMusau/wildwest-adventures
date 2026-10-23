@@ -56,4 +56,10 @@ wildwest:
       auth-token: ${NGROK_AUTH_TOKEN:}
       binary: ${NGROK_BINARY:ngrok}
       port: ${NGROK_PORT:8080}
-      url: ${NGROK_URL:}
+      url: ${NGROK_URL:}\
+
+  image:
+    cloudinary:
+      cloud-name: ${CLOUDINARY_CLOUD_NAME}
+      api-key: ${CLOUDINARY_API_KEY}
+      api-secret: ${CLOUDINARY_API_SECRET}
