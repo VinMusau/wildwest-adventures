@@ -13,6 +13,7 @@ import {
 import { ApiError } from "@/lib/api";
 import type { AdminItineraryDay, TourWriteInput } from "@/types";
 import { useToast } from "@/features/toast/useToast";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 const EMPTY: TourWriteInput = {
   title: "",
@@ -183,7 +184,9 @@ export default function AdminTourEditPage() {
           <h1>{isNew ? "New tour" : form.title || "Tour"}</h1>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <Link to="/admin/tours" className="button secondary">Cancel</Link>
+          <Link to="/admin/tours" className="button secondary">
+            Cancel
+          </Link>
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Saving…" : "Save"} <Icon name="arrow" />
           </Button>
@@ -228,7 +231,9 @@ export default function AdminTourEditPage() {
             >
               <option value="">Choose…</option>
               {destinations.map((d) => (
-                <option key={d.slug} value={d.slug}>{d.name}</option>
+                <option key={d.slug} value={d.slug}>
+                  {d.name}
+                </option>
               ))}
             </select>
           </label>
@@ -238,7 +243,9 @@ export default function AdminTourEditPage() {
               type="number"
               min={1}
               value={form.durationDays}
-              onChange={(e) => updateField("durationDays", parseInt(e.target.value || "0"))}
+              onChange={(e) =>
+                updateField("durationDays", parseInt(e.target.value || "0"))
+              }
               required
             />
           </label>
@@ -267,19 +274,41 @@ export default function AdminTourEditPage() {
               type="number"
               min={0}
               value={form.displayOrder}
-              onChange={(e) => updateField("displayOrder", parseInt(e.target.value || "0"))}
+              onChange={(e) =>
+                updateField("displayOrder", parseInt(e.target.value || "0"))
+              }
               required
             />
           </label>
-          <label className="wide">
-            Image URL
+          <div className="wide">
+            <label
+              style={{
+                display: "block",
+                fontSize: "11px",
+                fontWeight: 600,
+                marginBottom: "6px",
+              }}
+            >
+              Cover Image
+            </label>
+            <ImageUploader
+              initialImage={form.imageUrl}
+              onUploadSuccess={(url) => updateField("imageUrl", url)}
+            />
+            {/* Hidden input to satisfy HTML5 'required' validation if needed */}
             <input
+              type="text"
               value={form.imageUrl}
-              onChange={(e) => updateField("imageUrl", e.target.value)}
-              placeholder="https://…"
               required
+              style={{
+                opacity: 0,
+                height: 0,
+                position: "absolute",
+                pointerEvents: "none",
+              }}
+              tabIndex={-1}
             />
-          </label>
+          </div>
           <label className="checkbox">
             <input
               type="checkbox"
@@ -342,21 +371,27 @@ export default function AdminTourEditPage() {
                 <textarea
                   rows={3}
                   value={day.description}
-                  onChange={(e) => updateDay(i, { description: e.target.value })}
+                  onChange={(e) =>
+                    updateDay(i, { description: e.target.value })
+                  }
                 />
               </label>
               <label>
                 Accommodation
                 <input
                   value={day.accommodation ?? ""}
-                  onChange={(e) => updateDay(i, { accommodation: e.target.value })}
+                  onChange={(e) =>
+                    updateDay(i, { accommodation: e.target.value })
+                  }
                 />
               </label>
               <label>
                 Meals included
                 <input
                   value={day.mealsIncluded ?? ""}
-                  onChange={(e) => updateDay(i, { mealsIncluded: e.target.value })}
+                  onChange={(e) =>
+                    updateDay(i, { mealsIncluded: e.target.value })
+                  }
                 />
               </label>
             </div>
@@ -393,7 +428,9 @@ export default function AdminTourEditPage() {
       </section>
 
       <div className="admin-form-actions">
-        <Link to="/admin/tours" className="button secondary">Cancel</Link>
+        <Link to="/admin/tours" className="button secondary">
+          Cancel
+        </Link>
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? "Saving…" : "Save tour"} <Icon name="arrow" />
         </Button>
