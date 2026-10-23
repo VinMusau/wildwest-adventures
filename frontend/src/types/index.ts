@@ -57,6 +57,7 @@ export interface TourDetail extends Tour {
   itinerary: ItineraryDay[];
   inclusions: string[];
   images: TourImage[];
+  tourType: "SCHEDULED" | "ON_REQUEST" ;
 }
 
 export type UserRole = "USER" | "ADMIN";
@@ -208,6 +209,7 @@ export interface TourWriteInput {
   styleSlugs: string[];
   itinerary: AdminItineraryDay[];
   inclusions: string[];
+  tourType: "SCHEDULED" | "ON_REQUEST";
 }
 
 export interface BookingAdminSummary {

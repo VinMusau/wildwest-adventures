@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class BookingService {
@@ -38,11 +37,26 @@ public class BookingService {
 
     @Transactional
     public BookingDto create(User user, CreateBookingRequest request) {
-        // 1. Lock the departure for update
-        Availability availability = availabilityRepository
-                .lockForUpdate(request.tourSlug(), request.departureDate())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "No departure on that date"));
+        Tour tour = tourRepository.findBySlug(request.tourSlug())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found"));
+
+        Availability availability;
+
+        if ("ON_REQUEST".equals(tour.getTourType())) {
+            availability = new Availability();
+            availability.setTour(tour);
+            availability.setDepartureDate(request.departureDate());
+            availability.setCapacity(8);
+            availability.setBooked(0);
+            availability.setStatus("OPEN");
+            availability.setCurrency(tour.getCurrency());
+            availability = availabilityRepository.save(availability);
+        } else {
+            availability = availabilityRepository
+                    .lockForUpdate(request.tourSlug(), request.departureDate())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "No departure on that date"));
+        }
 
         if (!"OPEN".equals(availability.getStatus())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Departure is not open");
@@ -55,7 +69,6 @@ public class BookingService {
                     "Only " + availability.remaining() + " places remain on that departure");
         }
 
-        // 2. Resolve add-ons from the catalog (never trust client prices)
         List<AddonCatalog.Addon> selectedAddons = new ArrayList<>();
         if (request.addons() != null) {
             for (String code : request.addons()) {
@@ -68,7 +81,6 @@ public class BookingService {
             }
         }
 
-        // 3. Compute totals server-side
         int pricePerPerson = availability.effectivePriceCents();
         int subtotal = pricePerPerson * travelersCount;
         int addonsTotal = selectedAddons.stream()
@@ -76,12 +88,10 @@ public class BookingService {
                 .sum();
         int total = subtotal + addonsTotal;
 
-        // 4. Build the booking
-        Tour tour = availability.getTour();
         Booking booking = new Booking();
         booking.setReference(generateUniqueReference());
         booking.setUser(user);
-        booking.setTour(tour);
+        booking.setTour(tour); // FIXED: Removed duplicate declaration here
         booking.setAvailability(availability);
         booking.setDepartureDate(availability.getDepartureDate());
         booking.setTravelersCount(travelersCount);
@@ -118,11 +128,9 @@ public class BookingService {
             booking.getAddons().add(addon);
         }
 
-        // 5. Reserve inventory
         availability.setBooked(availability.getBooked() + travelersCount);
         availabilityRepository.save(availability);
 
-        // 6. Persist
         Booking saved = bookingRepository.save(booking);
         return BookingDto.from(saved);
     }
@@ -134,11 +142,9 @@ public class BookingService {
                         HttpStatus.NOT_FOUND, "Booking not found"));
 
         if (!booking.getUser().getId().equals(user.getId())) {
-            // Don't leak existence of other users' bookings — return 404
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found");
         }
 
-        // Force lazy loads
         booking.getTravelers().size();
         booking.getAddons().size();
 

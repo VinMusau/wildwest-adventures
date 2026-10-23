@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
+import ImageUploader from "@/components/admin/ImageUploader"; // Assuming you created this
 import { useTour } from "@/features/tours/useTour";
 import { useDestinations } from "@/features/destinations/useDestinations";
 import { useTravelStyles } from "@/features/travel-styles/useTravelStyles";
@@ -13,7 +14,6 @@ import {
 import { ApiError } from "@/lib/api";
 import type { AdminItineraryDay, TourWriteInput } from "@/types";
 import { useToast } from "@/features/toast/useToast";
-import ImageUploader from "@/components/admin/ImageUploader";
 
 const EMPTY: TourWriteInput = {
   title: "",
@@ -32,6 +32,7 @@ const EMPTY: TourWriteInput = {
   styleSlugs: [],
   itinerary: [],
   inclusions: [],
+  tourType: "SCHEDULED", // <-- Added
 };
 
 export default function AdminTourEditPage() {
@@ -77,6 +78,7 @@ export default function AdminTourEditPage() {
           mealsIncluded: d.mealsIncluded ?? "",
         })),
         inclusions: existing.inclusions,
+        tourType: existing.tourType || "SCHEDULED", // <-- Added
       });
       setPriceUsd((existing.priceCents / 100).toString());
     }
@@ -123,7 +125,6 @@ export default function AdminTourEditPage() {
   const removeDay = (index: number) => {
     setForm((f) => {
       const days = f.itinerary.filter((_, i) => i !== index);
-      // Re-number
       return { ...f, itinerary: days.map((d, i) => ({ ...d, dayNumber: i + 1 })) };
     });
   };
@@ -184,9 +185,7 @@ export default function AdminTourEditPage() {
           <h1>{isNew ? "New tour" : form.title || "Tour"}</h1>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <Link to="/admin/tours" className="button secondary">
-            Cancel
-          </Link>
+          <Link to="/admin/tours" className="button secondary">Cancel</Link>
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Saving…" : "Save"} <Icon name="arrow" />
           </Button>
@@ -231,10 +230,19 @@ export default function AdminTourEditPage() {
             >
               <option value="">Choose…</option>
               {destinations.map((d) => (
-                <option key={d.slug} value={d.slug}>
-                  {d.name}
-                </option>
+                <option key={d.slug} value={d.slug}>{d.name}</option>
               ))}
+            </select>
+          </label>
+          <label>
+            Tour Type
+            <select
+              value={form.tourType || "SCHEDULED"}
+              onChange={(e) => updateField("tourType", e.target.value as "SCHEDULED" | "ON_REQUEST")}
+              required
+            >
+              <option value="SCHEDULED">Scheduled (Fixed Dates)</option>
+              <option value="ON_REQUEST">On Request (Flexible Dates)</option>
             </select>
           </label>
           <label>
@@ -243,9 +251,7 @@ export default function AdminTourEditPage() {
               type="number"
               min={1}
               value={form.durationDays}
-              onChange={(e) =>
-                updateField("durationDays", parseInt(e.target.value || "0"))
-              }
+              onChange={(e) => updateField("durationDays", parseInt(e.target.value || "0"))}
               required
             />
           </label>
@@ -274,38 +280,23 @@ export default function AdminTourEditPage() {
               type="number"
               min={0}
               value={form.displayOrder}
-              onChange={(e) =>
-                updateField("displayOrder", parseInt(e.target.value || "0"))
-              }
+              onChange={(e) => updateField("displayOrder", parseInt(e.target.value || "0"))}
               required
             />
           </label>
           <div className="wide">
-            <label
-              style={{
-                display: "block",
-                fontSize: "11px",
-                fontWeight: 600,
-                marginBottom: "6px",
-              }}
-            >
+            <label style={{ display: "block", fontSize: "11px", fontWeight: 600, marginBottom: "6px" }}>
               Cover Image
             </label>
             <ImageUploader
               initialImage={form.imageUrl}
               onUploadSuccess={(url) => updateField("imageUrl", url)}
             />
-            {/* Hidden input to satisfy HTML5 'required' validation if needed */}
-            <input
-              type="text"
-              value={form.imageUrl}
-              required
-              style={{
-                opacity: 0,
-                height: 0,
-                position: "absolute",
-                pointerEvents: "none",
-              }}
+            <input 
+              type="text" 
+              value={form.imageUrl} 
+              required 
+              style={{ opacity: 0, height: 0, position: 'absolute', pointerEvents: 'none' }} 
               tabIndex={-1}
             />
           </div>
@@ -371,27 +362,21 @@ export default function AdminTourEditPage() {
                 <textarea
                   rows={3}
                   value={day.description}
-                  onChange={(e) =>
-                    updateDay(i, { description: e.target.value })
-                  }
+                  onChange={(e) => updateDay(i, { description: e.target.value })}
                 />
               </label>
               <label>
                 Accommodation
                 <input
                   value={day.accommodation ?? ""}
-                  onChange={(e) =>
-                    updateDay(i, { accommodation: e.target.value })
-                  }
+                  onChange={(e) => updateDay(i, { accommodation: e.target.value })}
                 />
               </label>
               <label>
                 Meals included
                 <input
                   value={day.mealsIncluded ?? ""}
-                  onChange={(e) =>
-                    updateDay(i, { mealsIncluded: e.target.value })
-                  }
+                  onChange={(e) => updateDay(i, { mealsIncluded: e.target.value })}
                 />
               </label>
             </div>
@@ -428,9 +413,7 @@ export default function AdminTourEditPage() {
       </section>
 
       <div className="admin-form-actions">
-        <Link to="/admin/tours" className="button secondary">
-          Cancel
-        </Link>
+        <Link to="/admin/tours" className="button secondary">Cancel</Link>
         <Button type="submit" disabled={mutation.isPending}>
           {mutation.isPending ? "Saving…" : "Save tour"} <Icon name="arrow" />
         </Button>

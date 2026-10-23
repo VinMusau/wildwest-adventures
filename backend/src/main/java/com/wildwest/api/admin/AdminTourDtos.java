@@ -34,7 +34,8 @@ public final class AdminTourDtos {
             @NotNull @Min(0) Integer displayOrder,
             List<String> styleSlugs,
             @Valid List<ItineraryDayInput> itinerary,
-            List<String> inclusions
+            List<String> inclusions,
+            String tourType
     ) {}
 
     public record TourAdminSummary(
@@ -66,6 +67,7 @@ public final class AdminTourDtos {
             int displayOrder,
             List<String> styleSlugs,
             List<ItineraryDayInput> itinerary,
-            List<String> inclusions
+            List<String> inclusions,
+                String tourType
     ) {}
 }

@@ -48,7 +48,6 @@ export default function BookingPage() {
   const urlDate = searchParams.get("date");
   const urlGuests = searchParams.get("guests");
   
-  // Parse the string param to a number, defaulting to 2
   const parsedGuests = Math.max(1, parseInt(urlGuests || "2", 10));
 
   const { data: tour, isLoading: tourLoading } = useTour(slug);
@@ -134,9 +133,8 @@ export default function BookingPage() {
       return;
     }
 
-    // Step 4: create booking + payment intent if we haven't already
     if (!draft.departureDate || !tour) return;
-    if (pendingBooking) return; // PaymentForm handles it from here
+    if (pendingBooking) return;
 
     createBooking.mutate(
       {
@@ -213,48 +211,79 @@ export default function BookingPage() {
             <>
               <span className="eyebrow">Step 1 of 4</span>
               <h1>Choose your departure</h1>
-              <p>Select an available date for your private journey.</p>
 
-              {availLoading ? (
-                <AvailabilitySkeleton />
-              ) : availability.length === 0 ? (
-                <p className="text-muted">No departures scheduled yet.</p>
-              ) : (
-                <div className="departure-list">
-                  {availability.slice(0, 12).map((a) => {
-                    const soldOut = a.remaining === 0;
-                    const active = draft.departureDate === a.date;
-                    return (
-                      <button
-                        key={a.id}
-                        type="button"
-                        disabled={soldOut}
-                        className={`departure-card ${active ? "active" : ""} ${soldOut ? "sold-out" : ""}`}
-                        onClick={() =>
-                          setDraft((prev) => ({
-                            ...prev,
-                            departureDate: a.date,
-                          }))
+              {tour.tourType === "ON_REQUEST" ? (
+                <>
+                  <p>Pick any date that works for you. We'll confirm it with our local experts.</p>
+                  <div style={{ margin: "24px 0" }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600 }}>
+                      Preferred departure date
+                      <input
+                        type="date"
+                        value={draft.departureDate || ""}
+                        min={new Date().toISOString().split("T")[0]}
+                        onChange={(e) =>
+                          setDraft((prev) => ({ ...prev, departureDate: e.target.value }))
                         }
-                      >
-                        <strong>
-                          {new Date(a.date).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                          })}
-                        </strong>
-                        <small>
-                          {soldOut ? "Sold out" : `${a.remaining} places left`}
-                        </small>
-                        <span>{formatPrice(a.priceCents, a.currency)}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          height: 48,
+                          marginTop: 6,
+                          padding: "0 12px",
+                          border: "1px solid var(--line)",
+                          borderRadius: 8,
+                        }}
+                        required
+                      />
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p>Select an available date for your private journey.</p>
+                  {availLoading ? (
+                    <AvailabilitySkeleton />
+                  ) : availability.length === 0 ? (
+                    <p className="text-muted">No departures scheduled yet.</p>
+                  ) : (
+                    <div className="departure-list">
+                      {availability.slice(0, 12).map((a) => {
+                        const soldOut = a.remaining === 0;
+                        const active = draft.departureDate === a.date;
+                        return (
+                          <button
+                            key={a.id}
+                            type="button"
+                            disabled={soldOut}
+                            className={`departure-card ${active ? "active" : ""} ${soldOut ? "sold-out" : ""}`}
+                            onClick={() =>
+                              setDraft((prev) => ({
+                                ...prev,
+                                departureDate: a.date,
+                              }))
+                            }
+                          >
+                            <strong>
+                              {new Date(a.date).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short",
+                              })}
+                            </strong>
+                            <small>
+                              {soldOut ? "Sold out" : `${a.remaining} places left`}
+                            </small>
+                            <span>{formatPrice(a.priceCents, a.currency)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
 
-              <div className="traveller-row">
+              <div className="traveller-row" style={{ marginTop: 24 }}>
                 <div>
                   <strong>Travellers</strong>
                   <span>Ages 12 and over</span>

@@ -68,7 +68,6 @@ public class AdminTourService {
     public TourAdminDetail update(String slug, TourWriteRequest req) {
         Tour tour = loadTour(slug);
 
-        // Allow slug change (with uniqueness check)
         String newSlug = (req.slug() != null && !req.slug().isBlank())
                 ? slugify(req.slug())
                 : slugify(req.title());
@@ -90,8 +89,6 @@ public class AdminTourService {
         Tour tour = loadTour(slug);
         tourRepository.delete(tour);
     }
-
-    // ---------- internals ----------
 
     private Tour loadTour(String slug) {
         return tourRepository.findBySlug(slug)
@@ -116,8 +113,8 @@ public class AdminTourService {
         tour.setImageUrl(req.imageUrl().trim());
         tour.setFeatured(req.featured());
         tour.setDisplayOrder(req.displayOrder());
+        tour.setTourType(req.tourType() != null ? req.tourType() : "SCHEDULED");
 
-        // Replace styles wholesale
         Set<TravelStyle> styles = new HashSet<>();
         if (req.styleSlugs() != null) {
             for (String s : req.styleSlugs()) {
@@ -130,7 +127,6 @@ public class AdminTourService {
         tour.getStyles().clear();
         tour.getStyles().addAll(styles);
 
-        // Replace itinerary wholesale
         tour.getItineraryDays().clear();
         if (req.itinerary() != null) {
             for (ItineraryDayInput day : req.itinerary()) {
@@ -145,7 +141,6 @@ public class AdminTourService {
             }
         }
 
-        // Replace inclusions wholesale
         tour.getInclusions().clear();
         if (req.inclusions() != null) {
             int order = 1;
@@ -212,7 +207,8 @@ public class AdminTourService {
                 t.getDisplayOrder(),
                 styleSlugs,
                 itinerary,
-                inclusions
+                inclusions,
+                t.getTourType() 
         );
     }
 

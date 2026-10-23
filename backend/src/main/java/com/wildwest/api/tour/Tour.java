@@ -79,4 +79,7 @@ public class Tour extends BaseEntity {
     @OrderBy("displayOrder ASC")
     private List<TourImage> images = new ArrayList<>();
 
+    @Column(name = "tour_type", nullable = false)
+    private String tourType = "SCHEDULED";
+
 }
