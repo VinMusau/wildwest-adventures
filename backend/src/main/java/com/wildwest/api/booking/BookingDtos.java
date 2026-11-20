@@ -1,10 +1,13 @@
 package com.wildwest.api.booking;
 
+import com.wildwest.api.common.Validation;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
@@ -21,23 +24,24 @@ public final class BookingDtos {
     public record CreateBookingRequest(
             @NotBlank String tourSlug,
             @NotNull LocalDate departureDate,
-            @NotEmpty @Valid List<TravelerInput> travelers,
+            @NotEmpty List<@Valid TravelerInput> travelers,
             @NotNull @Valid LeadInput lead,
-            List<String> addons
+            List<@NotBlank @Size(max = 60) String> addons
     ) {}
 
     public record TravelerInput(
             @NotBlank @Size(max = 100) String firstName,
             @NotBlank @Size(max = 100) String lastName,
-            String travelerType
+            @Pattern(regexp = "(?i)ADULT|CHILD", message = "must be ADULT or CHILD") String travelerType
     ) {}
 
     public record LeadInput(
             @NotBlank @Size(max = 100) String firstName,
             @NotBlank @Size(max = 100) String lastName,
-            @Email @NotBlank String email,
-            String phone,
-            String country
+            @Email(regexp = Validation.EMAIL, message = Validation.EMAIL_MESSAGE)
+            @NotBlank @Size(max = 255) String email,
+            @Size(max = 50) String phone,
+            @Size(max = 100) String country
     ) {}
 
     // ---------- responses ----------
