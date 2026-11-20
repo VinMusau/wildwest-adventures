@@ -3,6 +3,7 @@ package com.wildwest.api.availability;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -39,4 +40,13 @@ public interface AvailabilityRepository extends JpaRepository<Availability, UUID
     );
 
     List<Availability> findByTourSlugOrderByDepartureDateAsc(String slug);
+
+    /** Gives seats back to a departure in one atomic update, never going below zero. */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+        update Availability a
+        set a.booked = case when a.booked >= :seats then a.booked - :seats else 0 end
+        where a.id = :id
+        """)
+    int releaseSeats(@Param("id") UUID id, @Param("seats") int seats);
 }
