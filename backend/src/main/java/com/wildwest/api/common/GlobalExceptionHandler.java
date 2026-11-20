@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import tools.jackson.databind.DatabindException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -66,9 +67,31 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatusCode status,
             WebRequest request
     ) {
-        ProblemDetail body = ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_REQUEST, "Request body is missing, malformed, or has a field of the wrong type.");
+        String field = badFieldName(ex);
+        String detail = field != null
+                ? "Invalid value for '" + field + "'. Check its format and type (dates are YYYY-MM-DD)."
+                : "Request body is missing or is not valid JSON.";
+        ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
         return handleExceptionInternal(ex, body, headers, HttpStatus.BAD_REQUEST, request);
+    }
+
+    /** The JSON path of the field Jackson could not read, e.g. "date" or "itinerary[0].dayNumber". */
+    private static String badFieldName(Throwable ex) {
+        for (Throwable t = ex; t != null; t = t.getCause()) {
+            if (t instanceof DatabindException de && !de.getPath().isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (var ref : de.getPath()) {
+                    if (ref.getPropertyName() != null) {
+                        if (!sb.isEmpty()) sb.append('.');
+                        sb.append(ref.getPropertyName());
+                    } else if (ref.getIndex() >= 0) {
+                        sb.append('[').append(ref.getIndex()).append(']');
+                    }
+                }
+                return sb.isEmpty() ? null : sb.toString();
+            }
+        }
+        return null;
     }
 
     /** Method security ({@code @PreAuthorize}) denials. URL-level denials go through SecurityConfig. */

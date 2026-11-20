@@ -4,8 +4,8 @@ import com.wildwest.api.admin.AdminTourDtos.TourAdminDetail;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminSummary;
 import com.wildwest.api.admin.AdminTourDtos.TourWriteRequest;
 import com.wildwest.api.image.CloudinaryService;
-import com.wildwest.api.availability.Availability;
-import com.wildwest.api.availability.AvailabilityRepository;
+import com.wildwest.api.admin.AdminTourDtos.AvailabilityWriteRequest;
+import com.wildwest.api.availability.AvailabilityDto;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -27,12 +26,10 @@ public class AdminTourController {
 
     private final AdminTourService service;
     private final CloudinaryService cloudinaryService;
-    private final AvailabilityRepository availabilityRepository;
 
-    public AdminTourController(AdminTourService service, CloudinaryService cloudinaryService, AvailabilityRepository availabilityRepository) {
+    public AdminTourController(AdminTourService service, CloudinaryService cloudinaryService) {
         this.service = service;
         this.cloudinaryService = cloudinaryService;
-        this.availabilityRepository = availabilityRepository;
     }
 
     @GetMapping
@@ -92,21 +89,17 @@ public class AdminTourController {
     }
 
     @GetMapping("/{slug}/availability")
-    public List<Availability> listAvailability(@PathVariable String slug) {
-        return availabilityRepository.findByTourSlugOrderByDepartureDateAsc(slug);
+    public List<AvailabilityDto> listAvailability(@PathVariable String slug) {
+        return service.listAvailability(slug);
     }
 
     @PostMapping("/{slug}/availability")
     @ResponseStatus(HttpStatus.CREATED)
-    public Availability addAvailability(
+    public AvailabilityDto addAvailability(
             @PathVariable String slug,
-            @RequestBody Map<String, Object> body
+            @Valid @RequestBody AvailabilityWriteRequest request
     ) {
-        LocalDate date = LocalDate.parse((String) body.get("date"));
-        Integer capacity = (Integer) body.get("capacity");
-
-        // In a real app, use a DTO instead of Map, but this is faster for now
-        return service.addAvailability(slug, date, capacity);
+        return service.addAvailability(slug, request);
     }
 
     @DeleteMapping("/availability/{id}")
