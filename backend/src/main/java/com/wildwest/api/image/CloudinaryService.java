@@ -17,7 +17,7 @@ public class CloudinaryService {
     }
 
     public String uploadImage(MultipartFile file, String folder) throws IOException {
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
             "folder", folder
         ));
         // Return the secure HTTPS URL of the uploaded image

@@ -5,6 +5,7 @@ import com.wildwest.api.booking.BookingPaymentService;
 import com.wildwest.api.booking.BookingRepository;
 import com.wildwest.api.user.User;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,10 @@ import org.slf4j.LoggerFactory;
 public class PaystackService implements PaymentProvider {
 
     private static final String PAYSTACK_BASE = "https://api.paystack.co";
+
+    /** Paystack's JSON responses, read as a map. */
+    private static final ParameterizedTypeReference<Map<String, Object>> JSON_OBJECT =
+            new ParameterizedTypeReference<>() {};
 
     private final BookingPaymentService paymentService;
     private final BookingRepository bookingRepository;
@@ -94,7 +99,7 @@ public class PaystackService implements PaymentProvider {
                     .uri("/transaction/initialize")
                     .body(payload)
                     .retrieve()
-                    .body(Map.class);
+                    .body(JSON_OBJECT);
         } catch (Exception e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_GATEWAY, "Paystack error: " + e.getMessage());
@@ -152,7 +157,7 @@ public class PaystackService implements PaymentProvider {
             response = restClient.get()
                     .uri("/transaction/verify/{ref}", paystackReference)
                     .retrieve()
-                    .body(Map.class);
+                    .body(JSON_OBJECT);
         } catch (Exception e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_GATEWAY, "Paystack verify error: " + e.getMessage());
@@ -192,7 +197,7 @@ public class PaystackService implements PaymentProvider {
                     .uri("/refund")
                     .body(body)
                     .retrieve()
-                    .body(Map.class);
+                    .body(JSON_OBJECT);
         } catch (Exception e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_GATEWAY, "Paystack refund error: " + e.getMessage());
