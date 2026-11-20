@@ -5,9 +5,11 @@ import com.wildwest.api.admin.AdminBookingDtos.BookingAdminSummary;
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityRepository;
 import com.wildwest.api.booking.Booking;
+import com.wildwest.api.booking.BookingEvents;
 import com.wildwest.api.booking.BookingRepository;
 import com.wildwest.api.payment.PaystackService;
 import java.time.Instant;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,14 +25,17 @@ public class AdminBookingService {
     private final BookingRepository bookingRepository;
     private final AvailabilityRepository availabilityRepository;
     private final PaystackService paystackService;
+    private final ApplicationEventPublisher events;
 
     public AdminBookingService(
             BookingRepository bookingRepository,
             AvailabilityRepository availabilityRepository,
-            PaystackService paystackService) {
+            PaystackService paystackService,
+            ApplicationEventPublisher events) {
         this.bookingRepository = bookingRepository;
         this.availabilityRepository = availabilityRepository;
         this.paystackService = paystackService;
+        this.events = events;
     }
 
     @Transactional(readOnly = true)
@@ -70,6 +75,7 @@ public class AdminBookingService {
         booking.setCancelledAt(Instant.now());
         booking.setCancelReason(trimOrNull(reason));
 
+        events.publishEvent(new BookingEvents.Cancelled(booking.getId()));
         return BookingAdminDetail.from(bookingRepository.save(booking));
     }
 
@@ -91,6 +97,7 @@ public class AdminBookingService {
         // If it had an expiry, clear it — the hold is now meaningless
         booking.setExpiresAt(null);
 
+        events.publishEvent(new BookingEvents.Confirmed(booking.getId()));
         return BookingAdminDetail.from(bookingRepository.save(booking));
     }
 

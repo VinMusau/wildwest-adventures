@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,10 +44,15 @@ public class BookingPaymentService {
 
     private final BookingRepository bookingRepository;
     private final AvailabilityRepository availabilityRepository;
+    private final ApplicationEventPublisher events;
 
-    public BookingPaymentService(BookingRepository bookingRepository, AvailabilityRepository availabilityRepository) {
+    public BookingPaymentService(
+            BookingRepository bookingRepository,
+            AvailabilityRepository availabilityRepository,
+            ApplicationEventPublisher events) {
         this.bookingRepository = bookingRepository;
         this.availabilityRepository = availabilityRepository;
+        this.events = events;
     }
 
     @Transactional
@@ -55,6 +61,7 @@ public class BookingPaymentService {
 
         if (bookingRepository.confirmIfStatus(bookingId, Booking.Status.PENDING, now, paymentMethod) == 1) {
             log.info("Booking {} confirmed ({})", referenceOf(bookingId), paymentMethod);
+            events.publishEvent(new BookingEvents.Confirmed(bookingId));
             return Outcome.CONFIRMED;
         }
 
@@ -98,6 +105,7 @@ public class BookingPaymentService {
         log.info(
                 "Booking {} paid after its hold expired; seats were still free, so it is now confirmed",
                 booking.getReference());
+        events.publishEvent(new BookingEvents.Confirmed(booking.getId()));
         return Outcome.REINSTATED;
     }
 
