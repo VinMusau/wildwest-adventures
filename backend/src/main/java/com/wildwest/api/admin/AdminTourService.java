@@ -135,6 +135,14 @@ public class AdminTourService {
         tour.getStyles().addAll(styles);
 
         tour.getItineraryDays().clear();
+        tour.getInclusions().clear();
+        if (tour.getId() != null) {
+            // Hibernate runs inserts before orphan deletes when it flushes. Without this flush,
+            // re-adding an existing day number violates UNIQUE (tour_id, day_number), so saving
+            // a tour without changing its itinerary failed.
+            tourRepository.flush();
+        }
+
         if (req.itinerary() != null) {
             for (ItineraryDayInput day : req.itinerary()) {
                 TourItineraryDay entity = new TourItineraryDay();
@@ -148,7 +156,6 @@ public class AdminTourService {
             }
         }
 
-        tour.getInclusions().clear();
         if (req.inclusions() != null) {
             int order = 1;
             for (String label : req.inclusions()) {
