@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiUpload } from "@/lib/api";
 
 interface ImageUploaderProps {
   onUploadSuccess: (url: string) => void;
@@ -27,24 +28,12 @@ export default function ImageUploader({ onUploadSuccess, initialImage }: ImageUp
     formData.append("file", file);
 
     try {
-      const token = localStorage.getItem("wwa.token");
-      
-      // NOTE: Ensure this matches your backend route. 
-      // If it's in AdminTourController, it might be /api/v1/admin/tours/upload-image
-      const res = await fetch("/api/v1/admin/tours/upload-image", {
-        method: "POST",
-        headers: { 
-          Authorization: `Bearer ${token}` 
-        },
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Upload failed");
-
-      const data = await res.json();
+      // AdminTourController: POST /api/v1/admin/tours/upload-image -> { url }
+      const data = await apiUpload<{ url: string }>("/v1/admin/tours/upload-image", formData);
       setPreview(data.url);
       onUploadSuccess(data.url);
-    } catch (err) {
+    } catch {
+      // A 401 is already handled by the shared client (AUTH_EXPIRED_EVENT).
       setError("Failed to upload image. Please try again.");
     } finally {
       setUploading(false);
