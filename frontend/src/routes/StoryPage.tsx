@@ -4,7 +4,7 @@ import Footer from "@/components/layout/Footer";
 import Icon from "@/components/ui/Icon";
 import { photos } from "@/data/mock";
 
-const VALUES: Array<[string, string, string]> = [
+const VALUES: Array<[string, string]> = [
   [
     "Private by design",
     "Every journey is yours alone. Your own vehicle, your own guide, your own pace.",

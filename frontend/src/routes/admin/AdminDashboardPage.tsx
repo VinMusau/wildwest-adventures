@@ -103,12 +103,12 @@ export default function AdminDashboardPage() {
                     borderRadius: 8,
                     fontSize: 12,
                   }}
-                  formatter={(value: number) => [
-                    `$${value.toLocaleString()}`,
+                  formatter={(value) => [
+                    `$${Number(value ?? 0).toLocaleString()}`,
                     "Revenue",
                   ]}
                   labelFormatter={(v) =>
-                    new Date(v).toLocaleDateString("en-US", {
+                    new Date(String(v)).toLocaleDateString("en-US", {
                       weekday: "short",
                       day: "numeric",
                       month: "short",
