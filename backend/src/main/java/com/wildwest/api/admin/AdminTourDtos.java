@@ -33,7 +33,7 @@ public final class AdminTourDtos {
             @NotNull Boolean featured,
             @NotNull @Min(0) Integer displayOrder,
             List<String> styleSlugs,
-            @Valid List<ItineraryDayInput> itinerary,
+            List<@Valid ItineraryDayInput> itinerary,
             List<String> inclusions,
             String tourType
     ) {}

@@ -79,7 +79,7 @@ public class AdminTourController {
         if (file.getSize() > 5 * 1024 * 1024) { // 5MB limit
             throw new ResponseStatusException(HttpStatus.CONTENT_TOO_LARGE, "File too large");
         }
-        if (!file.getContentType().startsWith("image/")) {
+        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
             throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Only image files are allowed");
         }
 
