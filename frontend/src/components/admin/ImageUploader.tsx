@@ -1,5 +1,4 @@
 import { useState } from "react";
-import api from "../../utils/api";
 
 interface ImageUploaderProps {
   onUploadSuccess: (url: string) => void;

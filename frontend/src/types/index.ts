@@ -190,6 +190,7 @@ export interface AdminTourDetail {
   styleSlugs: string[];
   itinerary: AdminItineraryDay[];
   inclusions: string[];
+  tourType: "SCHEDULED" | "ON_REQUEST";
 }
 
 export interface TourWriteInput {
