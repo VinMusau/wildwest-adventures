@@ -37,8 +37,21 @@ public class BookingService {
         this.tourRepository = tourRepository;
     }
 
+    /** How many unpaid bookings (seat holds) one customer may have at once. */
+    private static final int MAX_ACTIVE_HOLDS_PER_USER = 3;
+
     @Transactional
     public BookingDto create(User user, CreateBookingRequest request) {
+        // Each unpaid booking holds seats for HOLD_MINUTES; cap how many one customer can hold
+        // at once so a single account can't block departures.
+        long activeHolds = bookingRepository.countByUserIdAndStatusAndExpiresAtAfter(
+                user.getId(), Booking.Status.PENDING, Instant.now());
+        if (activeHolds >= MAX_ACTIVE_HOLDS_PER_USER) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "You already have " + activeHolds + " unpaid reservations. Complete or let one expire ("
+                            + HOLD_MINUTES + " minutes) before reserving another.");
+        }
+
         Tour tour = tourRepository.findBySlug(request.tourSlug())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found"));
 
