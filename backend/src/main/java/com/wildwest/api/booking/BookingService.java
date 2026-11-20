@@ -83,7 +83,9 @@ public class BookingService {
 
         List<AddonCatalog.Addon> selectedAddons = new ArrayList<>();
         if (request.addons() != null) {
-            for (String code : request.addons()) {
+            // An add-on applies to the whole booking once; ignore repeats (e.g. a double click)
+            // rather than charging for it again.
+            for (String code : new java.util.LinkedHashSet<>(request.addons())) {
                 try {
                     selectedAddons.add(AddonCatalog.get(code));
                 } catch (IllegalArgumentException e) {
