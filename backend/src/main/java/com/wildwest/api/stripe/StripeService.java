@@ -7,14 +7,13 @@ import com.wildwest.api.booking.Booking;
 import com.wildwest.api.booking.BookingRepository;
 import com.wildwest.api.payment.PaymentProvider;
 import com.wildwest.api.user.User;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class StripeService implements PaymentProvider {
@@ -34,20 +33,16 @@ public class StripeService implements PaymentProvider {
     @Transactional
     public InitResult initialize(User user, Booking booking) {
         if (booking.getStatus() != Booking.Status.PENDING) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Booking is not awaiting payment");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Booking is not awaiting payment");
         }
-        if (booking.getExpiresAt() != null
-                && booking.getExpiresAt().isBefore(Instant.now())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Booking hold has expired");
+        if (booking.getExpiresAt() != null && booking.getExpiresAt().isBefore(Instant.now())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Booking hold has expired");
         }
 
         // Reuse existing intent if still usable
         if (booking.getStripePaymentIntentId() != null) {
             try {
-                PaymentIntent existing =
-                        PaymentIntent.retrieve(booking.getStripePaymentIntentId());
+                PaymentIntent existing = PaymentIntent.retrieve(booking.getStripePaymentIntentId());
                 if ("requires_payment_method".equals(existing.getStatus())
                         || "requires_confirmation".equals(existing.getStatus())) {
                     return InitResult.stripe(existing.getClientSecret());
@@ -65,16 +60,13 @@ public class StripeService implements PaymentProvider {
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                     .setAmount((long) booking.getTotalCents())
                     .setCurrency(booking.getCurrency().toLowerCase())
-                    .setAutomaticPaymentMethods(
-                            PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                                    .setEnabled(true)
-                                    .setAllowRedirects(
-                                            PaymentIntentCreateParams.AutomaticPaymentMethods
-                                                    .AllowRedirects.NEVER)
-                                    .build()
-                    )
+                    .setAutomaticPaymentMethods(PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                            .setEnabled(true)
+                            .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
+                            .build())
                     .putAllMetadata(metadata)
-                    .setDescription("Wild West Adventures — " + booking.getTour().getTitle())
+                    .setDescription(
+                            "Wild West Adventures — " + booking.getTour().getTitle())
                     .setReceiptEmail(booking.getLeadEmail())
                     .build();
 
@@ -84,8 +76,7 @@ public class StripeService implements PaymentProvider {
             bookingRepository.save(booking);
             return InitResult.stripe(intent.getClientSecret());
         } catch (StripeException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_GATEWAY, "Stripe error: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Stripe error: " + e.getMessage());
         }
     }
 }

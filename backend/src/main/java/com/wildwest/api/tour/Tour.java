@@ -4,14 +4,13 @@ import com.wildwest.api.common.BaseEntity;
 import com.wildwest.api.destination.Destination;
 import com.wildwest.api.travelstyle.TravelStyle;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
 
 @Getter
 @Setter
@@ -63,8 +62,7 @@ public class Tour extends BaseEntity {
     @JoinTable(
             name = "tour_styles",
             joinColumns = @JoinColumn(name = "tour_id"),
-            inverseJoinColumns = @JoinColumn(name = "style_id")
-    )
+            inverseJoinColumns = @JoinColumn(name = "style_id"))
     private Set<TravelStyle> styles = new HashSet<>();
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -81,5 +79,4 @@ public class Tour extends BaseEntity {
 
     @Column(name = "tour_type", nullable = false)
     private String tourType = "SCHEDULED";
-
 }

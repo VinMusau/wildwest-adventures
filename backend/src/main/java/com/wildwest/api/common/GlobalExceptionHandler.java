@@ -1,5 +1,8 @@
 package com.wildwest.api.common;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -18,10 +21,6 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import tools.jackson.databind.DatabindException;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * Turns exceptions into RFC 9457 problem responses ({@code application/problem+json})
  * whose {@code detail} field says what went wrong. The frontend shows {@code detail}.
@@ -37,24 +36,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     /** Bean validation failures on {@code @Valid @RequestBody}: list every field and its problem. */
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex,
-            HttpHeaders headers,
-            HttpStatusCode status,
-            WebRequest request
-    ) {
+            MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         Map<String, String> errors = new LinkedHashMap<>();
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
             errors.putIfAbsent(fe.getField(), fe.getDefaultMessage());
         }
-        ex.getBindingResult().getGlobalErrors()
+        ex.getBindingResult()
+                .getGlobalErrors()
                 .forEach(ge -> errors.putIfAbsent(ge.getObjectName(), ge.getDefaultMessage()));
 
         String detail = errors.entrySet().stream()
                 .map(e -> e.getKey() + " " + e.getValue())
                 .collect(Collectors.joining("; "));
 
-        ProblemDetail body = ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_REQUEST, "Invalid request: " + detail);
+        ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request: " + detail);
         body.setTitle("Validation failed");
         body.setProperty("errors", errors);
         return handleExceptionInternal(ex, body, headers, HttpStatus.BAD_REQUEST, request);
@@ -62,11 +57,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(
-            HttpMessageNotReadableException ex,
-            HttpHeaders headers,
-            HttpStatusCode status,
-            WebRequest request
-    ) {
+            HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         String field = badFieldName(ex);
         String detail = field != null
                 ? "Invalid value for '" + field + "'. Check its format and type (dates are YYYY-MM-DD)."
@@ -97,8 +88,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     /** Method security ({@code @PreAuthorize}) denials. URL-level denials go through SecurityConfig. */
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
-        return ProblemDetail.forStatusAndDetail(
-                HttpStatus.FORBIDDEN, "You don't have permission to do that.");
+        return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "You don't have permission to do that.");
     }
 
     /** A database constraint was violated, e.g. a duplicate unique value. */
@@ -106,8 +96,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex) {
         log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
         return ProblemDetail.forStatusAndDetail(
-                HttpStatus.CONFLICT,
-                "This change conflicts with existing data (for example a duplicate value).");
+                HttpStatus.CONFLICT, "This change conflicts with existing data (for example a duplicate value).");
     }
 
     /** Anything unexpected: log it in full, and don't leak internals to the client. */
@@ -115,7 +104,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ProblemDetail handleUnexpected(Exception ex) {
         log.error("Unhandled exception", ex);
         return ProblemDetail.forStatusAndDetail(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Something went wrong on our side. Please try again.");
+                HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong on our side. Please try again.");
     }
 }

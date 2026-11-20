@@ -15,8 +15,7 @@ public record AvailabilityDto(
         int remaining,
         int priceCents,
         String currency,
-        String status
-) {
+        String status) {
     public static AvailabilityDto from(Availability a) {
         return new AvailabilityDto(
                 a.getId(),
@@ -26,7 +25,6 @@ public record AvailabilityDto(
                 a.remaining(),
                 a.effectivePriceCents(),
                 a.getCurrency(),
-                a.getStatus()
-        );
+                a.getStatus());
     }
 }

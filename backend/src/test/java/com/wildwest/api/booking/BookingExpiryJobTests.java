@@ -1,5 +1,7 @@
 package com.wildwest.api.booking;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityRepository;
 import com.wildwest.api.booking.BookingDtos.BookingDto;
@@ -9,29 +11,35 @@ import com.wildwest.api.booking.BookingDtos.TravelerInput;
 import com.wildwest.api.user.User;
 import com.wildwest.api.user.UserRepository;
 import com.wildwest.api.user.UserRole;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 class BookingExpiryJobTests {
 
     private static final String TOUR = "cape-town-winelands";
 
-    @Autowired BookingExpiryJob job;
-    @Autowired BookingService bookingService;
-    @Autowired BookingRepository bookingRepository;
-    @Autowired AvailabilityRepository availabilityRepository;
-    @Autowired UserRepository userRepository;
+    @Autowired
+    BookingExpiryJob job;
+
+    @Autowired
+    BookingService bookingService;
+
+    @Autowired
+    BookingRepository bookingRepository;
+
+    @Autowired
+    AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     private User user;
     private Availability departure;
@@ -98,13 +106,21 @@ class BookingExpiryJobTests {
         List<TravelerInput> people = java.util.stream.IntStream.range(0, travelers)
                 .mapToObj(i -> new TravelerInput("Traveler" + i, "Test", "ADULT"))
                 .toList();
-        return bookingService.create(user, new CreateBookingRequest(
-                TOUR, departure.getDepartureDate(), people,
-                new LeadInput("Lead", "Test", "lead@example.test", null, null), null));
+        return bookingService.create(
+                user,
+                new CreateBookingRequest(
+                        TOUR,
+                        departure.getDepartureDate(),
+                        people,
+                        new LeadInput("Lead", "Test", "lead@example.test", null, null),
+                        null));
     }
 
     private Booking.Status status(BookingDto booking) {
-        return bookingRepository.findByReference(booking.reference()).orElseThrow().getStatus();
+        return bookingRepository
+                .findByReference(booking.reference())
+                .orElseThrow()
+                .getStatus();
     }
 
     private int seatsBooked() {

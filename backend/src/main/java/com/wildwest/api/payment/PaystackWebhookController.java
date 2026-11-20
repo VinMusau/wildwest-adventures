@@ -3,6 +3,13 @@ package com.wildwest.api.payment;
 import com.wildwest.api.booking.BookingPaymentService;
 import com.wildwest.api.booking.BookingRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.HexFormat;
+import java.util.stream.Collectors;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,14 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.HexFormat;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/webhooks")
@@ -39,8 +38,7 @@ public class PaystackWebhookController {
             BookingRepository bookingRepository,
             BookingPaymentService paymentService,
             JsonMapper jsonMapper,
-            @Value("${wildwest.paystack.secret-key:}") String secretKey
-    ) {
+            @Value("${wildwest.paystack.secret-key:}") String secretKey) {
         this.bookingRepository = bookingRepository;
         this.paymentService = paymentService;
         this.jsonMapper = jsonMapper;
@@ -51,8 +49,8 @@ public class PaystackWebhookController {
     @Transactional
     public ResponseEntity<String> handle(
             HttpServletRequest request,
-            @RequestHeader(value = "x-paystack-signature", required = false) String signature
-    ) throws IOException {
+            @RequestHeader(value = "x-paystack-signature", required = false) String signature)
+            throws IOException {
 
         String payload = request.getReader().lines().collect(Collectors.joining("\n"));
 
@@ -79,8 +77,7 @@ public class PaystackWebhookController {
             if (reference != null && "success".equals(status)) {
                 onChargeSuccess(reference);
             } else {
-                log.warn("charge.success missing reference or status: ref={} status={}",
-                        reference, status);
+                log.warn("charge.success missing reference or status: ref={} status={}", reference, status);
             }
         }
 
@@ -90,15 +87,13 @@ public class PaystackWebhookController {
     private boolean verifySignature(String payload, String receivedSignature) {
         try {
             Mac mac = Mac.getInstance("HmacSHA512");
-            SecretKeySpec key = new SecretKeySpec(
-                    secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+            SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
             mac.init(key);
             byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
             String computed = HexFormat.of().formatHex(hash);
 
             return MessageDigest.isEqual(
-                    computed.getBytes(StandardCharsets.UTF_8),
-                    receivedSignature.getBytes(StandardCharsets.UTF_8));
+                    computed.getBytes(StandardCharsets.UTF_8), receivedSignature.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             log.error("Signature verification error", e);
             return false;
@@ -106,9 +101,10 @@ public class PaystackWebhookController {
     }
 
     private void onChargeSuccess(String reference) {
-        bookingRepository.findByPaystackReference(reference).ifPresentOrElse(
-                booking -> paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK"),
-                () -> log.warn("No booking found for Paystack reference {}", reference)
-        );
+        bookingRepository
+                .findByPaystackReference(reference)
+                .ifPresentOrElse(
+                        booking -> paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK"),
+                        () -> log.warn("No booking found for Paystack reference {}", reference));
     }
 }

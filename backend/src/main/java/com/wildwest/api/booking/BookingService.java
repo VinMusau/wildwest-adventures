@@ -6,16 +6,15 @@ import com.wildwest.api.booking.BookingDtos.*;
 import com.wildwest.api.tour.Tour;
 import com.wildwest.api.tour.TourRepository;
 import com.wildwest.api.user.User;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class BookingService {
@@ -30,8 +29,7 @@ public class BookingService {
     public BookingService(
             BookingRepository bookingRepository,
             AvailabilityRepository availabilityRepository,
-            TourRepository tourRepository
-    ) {
+            TourRepository tourRepository) {
         this.bookingRepository = bookingRepository;
         this.availabilityRepository = availabilityRepository;
         this.tourRepository = tourRepository;
@@ -47,17 +45,18 @@ public class BookingService {
         long activeHolds = bookingRepository.countByUserIdAndStatusAndExpiresAtAfter(
                 user.getId(), Booking.Status.PENDING, Instant.now());
         if (activeHolds >= MAX_ACTIVE_HOLDS_PER_USER) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
                     "You already have " + activeHolds + " unpaid reservations. Complete or let one expire ("
                             + HOLD_MINUTES + " minutes) before reserving another.");
         }
 
-        Tour tour = tourRepository.findBySlug(request.tourSlug())
+        Tour tour = tourRepository
+                .findBySlug(request.tourSlug())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found"));
 
         if (request.departureDate().isBefore(LocalDate.now())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "That departure date has already passed");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "That departure date has already passed");
         }
 
         int travelersCount = request.travelers().size();
@@ -68,7 +67,8 @@ public class BookingService {
             // the same date. The bookings for a date share one availability row (the table
             // allows one per tour and date); its capacity grows to fit each new group.
             if (travelersCount > ON_REQUEST_MAX_GROUP) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
                         "On-request journeys take up to " + ON_REQUEST_MAX_GROUP + " travelers per booking");
             }
             availabilityRepository.insertOnRequestDateIfMissing(
@@ -80,8 +80,7 @@ public class BookingService {
         } else {
             availability = availabilityRepository
                     .lockForUpdate(request.tourSlug(), request.departureDate())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND, "No departure on that date"));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No departure on that date"));
         }
 
         if (!"OPEN".equals(availability.getStatus())) {
@@ -90,8 +89,7 @@ public class BookingService {
 
         if (availability.remaining() < travelersCount) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Only " + availability.remaining() + " places remain on that departure");
+                    HttpStatus.CONFLICT, "Only " + availability.remaining() + " places remain on that departure");
         }
 
         List<AddonCatalog.Addon> selectedAddons = new ArrayList<>();
@@ -102,8 +100,7 @@ public class BookingService {
                 try {
                     selectedAddons.add(AddonCatalog.get(code));
                 } catch (IllegalArgumentException e) {
-                    throw new ResponseStatusException(
-                            HttpStatus.BAD_REQUEST, "Unknown add-on: " + code);
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown add-on: " + code);
                 }
             }
         }
@@ -164,9 +161,9 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public BookingDto getByReference(User user, String reference) {
-        Booking booking = bookingRepository.findByReference(reference)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Booking not found"));
+        Booking booking = bookingRepository
+                .findByReference(reference)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found"));
 
         if (!booking.getUser().getId().equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found");
@@ -180,8 +177,7 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<BookingDto> listMine(User user) {
-        return bookingRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
-                .stream()
+        return bookingRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
                 .map(booking -> {
                     booking.getTravelers().size();
                     booking.getAddons().size();

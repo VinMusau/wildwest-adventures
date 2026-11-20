@@ -1,7 +1,6 @@
 package com.wildwest.api.booking;
 
 import com.wildwest.api.common.Validation;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,7 +8,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -26,50 +24,40 @@ public final class BookingDtos {
             @NotNull LocalDate departureDate,
             @NotEmpty List<@Valid TravelerInput> travelers,
             @NotNull @Valid LeadInput lead,
-            List<@NotBlank @Size(max = 60) String> addons
-    ) {}
+            List<@NotBlank @Size(max = 60) String> addons) {}
 
     public record TravelerInput(
             @NotBlank @Size(max = 100) String firstName,
             @NotBlank @Size(max = 100) String lastName,
-            @Pattern(regexp = "(?i)ADULT|CHILD", message = "must be ADULT or CHILD") String travelerType
-    ) {}
+
+            @Pattern(regexp = "(?i)ADULT|CHILD", message = "must be ADULT or CHILD")
+            String travelerType) {}
 
     public record LeadInput(
             @NotBlank @Size(max = 100) String firstName,
             @NotBlank @Size(max = 100) String lastName,
-            @Email(regexp = Validation.EMAIL, message = Validation.EMAIL_MESSAGE)
-            @NotBlank @Size(max = 255) String email,
+
+            @Email(regexp = Validation.EMAIL, message = Validation.EMAIL_MESSAGE) @NotBlank @Size(max = 255)
+            String email,
+
             @Size(max = 50) String phone,
-            @Size(max = 100) String country
-    ) {}
+            @Size(max = 100) String country) {}
 
     // ---------- responses ----------
 
-    public record TravelerDto(
-            UUID id,
-            String firstName,
-            String lastName,
-            String travelerType
-    ) {
+    public record TravelerDto(UUID id, String firstName, String lastName, String travelerType) {
         public static TravelerDto from(BookingTraveler traveler) {
             return new TravelerDto(
                     traveler.getId(),
                     traveler.getFirstName(),
                     traveler.getLastName(),
-                    traveler.getTravelerType().name()
-            );
+                    traveler.getTravelerType().name());
         }
     }
 
     public record AddonDto(UUID id, String code, String label, int priceCents) {
         public static AddonDto from(BookingAddon addon) {
-            return new AddonDto(
-                    addon.getId(),
-                    addon.getCode(),
-                    addon.getLabel(),
-                    addon.getPriceCents()
-            );
+            return new AddonDto(addon.getId(), addon.getCode(), addon.getLabel(), addon.getPriceCents());
         }
     }
 
@@ -96,8 +84,7 @@ public final class BookingDtos {
             Instant expiresAt,
             Instant createdAt,
             List<TravelerDto> travelers,
-            List<AddonDto> addons
-    ) {
+            List<AddonDto> addons) {
         public static BookingDto from(Booking booking) {
             return new BookingDto(
                     booking.getId(),
@@ -122,8 +109,7 @@ public final class BookingDtos {
                     booking.getExpiresAt(),
                     booking.getCreatedAt(),
                     booking.getTravelers().stream().map(TravelerDto::from).toList(),
-                    booking.getAddons().stream().map(AddonDto::from).toList()
-            );
+                    booking.getAddons().stream().map(AddonDto::from).toList());
         }
     }
 }

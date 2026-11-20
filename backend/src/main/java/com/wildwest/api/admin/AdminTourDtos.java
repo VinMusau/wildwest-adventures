@@ -2,7 +2,6 @@ package com.wildwest.api.admin;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -16,12 +15,11 @@ public final class AdminTourDtos {
             @NotBlank @Size(max = 200) String title,
             @NotBlank String description,
             @Size(max = 200) String accommodation,
-            @Size(max = 200) String mealsIncluded
-    ) {}
+            @Size(max = 200) String mealsIncluded) {}
 
     public record TourWriteRequest(
             @NotBlank @Size(max = 200) String title,
-            @Size(max = 140) String slug,             // optional, auto-generated from title
+            @Size(max = 140) String slug, // optional, auto-generated from title
             @NotBlank @Size(max = 160) String place,
             @NotBlank String destinationSlug,
             @NotNull @Min(1) @Max(90) Integer durationDays,
@@ -36,13 +34,11 @@ public final class AdminTourDtos {
             List<String> styleSlugs,
             List<@Valid ItineraryDayInput> itinerary,
             List<String> inclusions,
-            String tourType
-    ) {}
+            String tourType) {}
 
     public record AvailabilityWriteRequest(
             @NotNull @FutureOrPresent LocalDate date,
-            @NotNull @Min(1) Integer capacity
-    ) {}
+            @NotNull @Min(1) Integer capacity) {}
 
     public record TourAdminSummary(
             String slug,
@@ -54,8 +50,7 @@ public final class AdminTourDtos {
             int priceCents,
             String currency,
             boolean featured,
-            int displayOrder
-    ) {}
+            int displayOrder) {}
 
     public record TourAdminDetail(
             String slug,
@@ -74,6 +69,5 @@ public final class AdminTourDtos {
             List<String> styleSlugs,
             List<ItineraryDayInput> itinerary,
             List<String> inclusions,
-                String tourType
-    ) {}
+            String tourType) {}
 }

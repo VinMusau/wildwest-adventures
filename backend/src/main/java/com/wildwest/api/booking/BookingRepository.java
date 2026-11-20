@@ -1,16 +1,15 @@
 package com.wildwest.api.booking;
 
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.time.Instant;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpecificationExecutor<Booking> {
 
@@ -52,7 +51,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
     int expireIfPending(@Param("id") UUID id, @Param("now") Instant now);
 
     Optional<Booking> findByStripePaymentIntentId(String paymentIntentId);
-    
+
     Optional<Booking> findByPaystackReference(String paystackReference);
 
     /**
@@ -74,8 +73,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
             @Param("id") UUID id,
             @Param("expected") Booking.Status expected,
             @Param("paidAt") Instant paidAt,
-            @Param("method") String method
-    );
+            @Param("method") String method);
 
     @Query(value = """
     SELECT COUNT(*) FROM bookings

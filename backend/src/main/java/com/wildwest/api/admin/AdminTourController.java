@@ -1,23 +1,21 @@
 package com.wildwest.api.admin;
 
+import com.wildwest.api.admin.AdminTourDtos.AvailabilityWriteRequest;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminDetail;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminSummary;
 import com.wildwest.api.admin.AdminTourDtos.TourWriteRequest;
-import com.wildwest.api.image.CloudinaryService;
-import com.wildwest.api.admin.AdminTourDtos.AvailabilityWriteRequest;
 import com.wildwest.api.availability.AvailabilityDto;
-
+import com.wildwest.api.image.CloudinaryService;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
-import java.util.Map;
-import java.io.IOException;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/admin/tours")
@@ -49,10 +47,7 @@ public class AdminTourController {
     }
 
     @PutMapping("/{slug}")
-    public TourAdminDetail update(
-            @PathVariable String slug,
-            @Valid @RequestBody TourWriteRequest request
-    ) {
+    public TourAdminDetail update(@PathVariable String slug, @Valid @RequestBody TourWriteRequest request) {
         return service.update(slug, request);
     }
 
@@ -96,9 +91,7 @@ public class AdminTourController {
     @PostMapping("/{slug}/availability")
     @ResponseStatus(HttpStatus.CREATED)
     public AvailabilityDto addAvailability(
-            @PathVariable String slug,
-            @Valid @RequestBody AvailabilityWriteRequest request
-    ) {
+            @PathVariable String slug, @Valid @RequestBody AvailabilityWriteRequest request) {
         return service.addAvailability(slug, request);
     }
 

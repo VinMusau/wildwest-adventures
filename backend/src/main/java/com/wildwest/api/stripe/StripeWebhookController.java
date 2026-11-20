@@ -7,6 +7,8 @@ import com.stripe.net.Webhook;
 import com.wildwest.api.booking.BookingPaymentService;
 import com.wildwest.api.booking.BookingRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.io.IOException;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/webhooks")
@@ -30,10 +29,7 @@ public class StripeWebhookController {
     private final BookingPaymentService paymentService;
 
     public StripeWebhookController(
-            StripeProperties properties,
-            BookingRepository bookingRepository,
-            BookingPaymentService paymentService
-    ) {
+            StripeProperties properties, BookingRepository bookingRepository, BookingPaymentService paymentService) {
         this.properties = properties;
         this.bookingRepository = bookingRepository;
         this.paymentService = paymentService;
@@ -42,9 +38,7 @@ public class StripeWebhookController {
     @PostMapping("/stripe")
     @Transactional
     public ResponseEntity<String> handle(
-            HttpServletRequest request,
-            @RequestHeader("Stripe-Signature") String signature
-    ) throws IOException {
+            HttpServletRequest request, @RequestHeader("Stripe-Signature") String signature) throws IOException {
 
         // CRITICAL: read the raw body. Do NOT use @RequestBody.
         String payload = request.getReader().lines().collect(Collectors.joining("\n"));
@@ -73,10 +67,11 @@ public class StripeWebhookController {
         if (intent == null) return;
 
         String method = intent.getPaymentMethod() != null ? intent.getPaymentMethod() : "STRIPE";
-        bookingRepository.findByStripePaymentIntentId(intent.getId()).ifPresentOrElse(
-                booking -> paymentService.recordSuccessfulPayment(booking.getId(), method),
-                () -> log.warn("No booking found for PaymentIntent {}", intent.getId())
-        );
+        bookingRepository
+                .findByStripePaymentIntentId(intent.getId())
+                .ifPresentOrElse(
+                        booking -> paymentService.recordSuccessfulPayment(booking.getId(), method),
+                        () -> log.warn("No booking found for PaymentIntent {}", intent.getId()));
     }
 
     private void onFailed(Event event) {
@@ -86,8 +81,11 @@ public class StripeWebhookController {
         bookingRepository.findByStripePaymentIntentId(intent.getId()).ifPresent(booking -> {
             // Leave it PENDING so the user can retry. The scheduler will
             // eventually expire it if they never pay.
-            log.info("Payment failed for booking {} (PI {}): {}",
-                    booking.getReference(), intent.getId(), intent.getLastPaymentError());
+            log.info(
+                    "Payment failed for booking {} (PI {}): {}",
+                    booking.getReference(),
+                    intent.getId(),
+                    intent.getLastPaymentError());
         });
     }
 

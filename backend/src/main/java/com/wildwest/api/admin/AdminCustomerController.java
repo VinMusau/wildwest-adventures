@@ -20,9 +20,7 @@ public class AdminCustomerController {
 
     @GetMapping
     public Page<CustomerProjection> list(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "25") int size
-    ) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "25") int size) {
         Pageable pageable = PageRequest.of(page, Math.min(size, 100));
         return userRepository.findAllWithBookingStats(pageable);
     }

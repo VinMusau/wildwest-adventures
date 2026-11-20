@@ -2,13 +2,12 @@ package com.wildwest.api.booking;
 
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityRepository;
+import java.time.Instant;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.UUID;
 
 /**
  * The one place a successful payment changes a booking. Used by every payment path
@@ -62,24 +61,31 @@ public class BookingPaymentService {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
         return switch (booking.getStatus()) {
             case CONFIRMED -> {
-                log.info("Booking {} already confirmed, ignoring duplicate payment notification",
+                log.info(
+                        "Booking {} already confirmed, ignoring duplicate payment notification",
                         booking.getReference());
                 yield Outcome.ALREADY_CONFIRMED;
             }
             case EXPIRED -> reinstateOrFlag(booking, now, paymentMethod);
             case CANCELLED -> flagForRefund(booking, now, paymentMethod, "it was cancelled");
             // Unreachable: a PENDING booking would have been confirmed above.
-            case PENDING -> throw new IllegalStateException(
-                    "Booking " + booking.getReference() + " is PENDING but could not be confirmed");
+            case PENDING ->
+                throw new IllegalStateException(
+                        "Booking " + booking.getReference() + " is PENDING but could not be confirmed");
         };
     }
 
     private Outcome reinstateOrFlag(Booking booking, Instant now, String paymentMethod) {
-        Availability departure = availabilityRepository.lockById(booking.getAvailability().getId()).orElseThrow();
+        Availability departure = availabilityRepository
+                .lockById(booking.getAvailability().getId())
+                .orElseThrow();
         int seats = booking.getTravelersCount();
 
         if (!"OPEN".equals(departure.getStatus()) || departure.remaining() < seats) {
-            return flagForRefund(booking, now, paymentMethod,
+            return flagForRefund(
+                    booking,
+                    now,
+                    paymentMethod,
                     "its hold expired and the departure no longer has " + seats + " seat(s) free");
         }
 
@@ -89,7 +95,8 @@ public class BookingPaymentService {
             // Changed under us; undo the seats by rolling back the whole transaction.
             throw new IllegalStateException("Booking " + booking.getReference() + " changed while being reinstated");
         }
-        log.info("Booking {} paid after its hold expired; seats were still free, so it is now confirmed",
+        log.info(
+                "Booking {} paid after its hold expired; seats were still free, so it is now confirmed",
                 booking.getReference());
         return Outcome.REINSTATED;
     }
@@ -100,8 +107,11 @@ public class BookingPaymentService {
         }
         booking.setPaymentMethod(paymentMethod);
         bookingRepository.save(booking);
-        log.warn("REFUND NEEDED: booking {} was paid but left {} because {}",
-                booking.getReference(), booking.getStatus(), why);
+        log.warn(
+                "REFUND NEEDED: booking {} was paid but left {} because {}",
+                booking.getReference(),
+                booking.getStatus(),
+                why);
         return Outcome.PAID_NEEDS_REFUND;
     }
 
