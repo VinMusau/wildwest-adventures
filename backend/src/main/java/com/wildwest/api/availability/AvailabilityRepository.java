@@ -39,6 +39,10 @@ public interface AvailabilityRepository extends JpaRepository<Availability, UUID
             @Param("date") LocalDate date
     );
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select a from Availability a where a.id = :id")
+    Optional<Availability> lockById(@Param("id") UUID id);
+
     List<Availability> findByTourSlugOrderByDepartureDateAsc(String slug);
 
     /** Gives seats back to a departure in one atomic update, never going below zero. */

@@ -1,6 +1,6 @@
 package com.wildwest.api.payment;
 
-import com.wildwest.api.booking.Booking;
+import com.wildwest.api.booking.BookingPaymentService;
 import com.wildwest.api.booking.BookingRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -12,16 +12,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.time.Instant;
 import java.util.HexFormat;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,21 +30,20 @@ public class PaystackWebhookController {
 
     private static final Logger log = LoggerFactory.getLogger(PaystackWebhookController.class);
 
-    private static final Pattern EVENT_PATTERN =
-            Pattern.compile("\"event\"\\s*:\\s*\"([^\"]+)\"");
-    private static final Pattern REFERENCE_PATTERN =
-            Pattern.compile("\"reference\"\\s*:\\s*\"([^\"]+)\"");
-    private static final Pattern STATUS_PATTERN =
-            Pattern.compile("\"status\"\\s*:\\s*\"([^\"]+)\"");
-
     private final BookingRepository bookingRepository;
+    private final BookingPaymentService paymentService;
+    private final JsonMapper jsonMapper;
     private final String secretKey;
 
     public PaystackWebhookController(
             BookingRepository bookingRepository,
+            BookingPaymentService paymentService,
+            JsonMapper jsonMapper,
             @Value("${wildwest.paystack.secret-key:}") String secretKey
     ) {
         this.bookingRepository = bookingRepository;
+        this.paymentService = paymentService;
+        this.jsonMapper = jsonMapper;
         this.secretKey = secretKey;
     }
 
@@ -62,12 +61,20 @@ public class PaystackWebhookController {
             return ResponseEntity.status(400).body("Invalid signature");
         }
 
-        String event = firstMatch(EVENT_PATTERN, payload);
+        JsonNode root;
+        try {
+            root = jsonMapper.readTree(payload);
+        } catch (JacksonException e) {
+            log.warn("Paystack webhook body is not valid JSON");
+            return ResponseEntity.status(400).body("Invalid JSON");
+        }
+        String event = root.path("event").asString(null);
         log.info("Paystack webhook received: {}", event);
 
         if ("charge.success".equals(event)) {
-            String reference = firstMatch(REFERENCE_PATTERN, payload);
-            String status = firstMatch(STATUS_PATTERN, payload);
+            JsonNode data = root.path("data");
+            String reference = data.path("reference").asString(null);
+            String status = data.path("status").asString(null);
 
             if (reference != null && "success".equals(status)) {
                 onChargeSuccess(reference);
@@ -78,11 +85,6 @@ public class PaystackWebhookController {
         }
 
         return ResponseEntity.ok("ok");
-    }
-
-    private static String firstMatch(Pattern pattern, String input) {
-        Matcher m = pattern.matcher(input);
-        return m.find() ? m.group(1) : null;
     }
 
     private boolean verifySignature(String payload, String receivedSignature) {
@@ -105,18 +107,7 @@ public class PaystackWebhookController {
 
     private void onChargeSuccess(String reference) {
         bookingRepository.findByPaystackReference(reference).ifPresentOrElse(
-                booking -> {
-                    if (booking.getStatus() == Booking.Status.CONFIRMED) {
-                        log.info("Booking {} already confirmed, ignoring duplicate",
-                                booking.getReference());
-                        return;
-                    }
-                    booking.setStatus(Booking.Status.CONFIRMED);
-                    booking.setPaidAt(Instant.now());
-                    booking.setPaymentMethod("PAYSTACK");
-                    bookingRepository.save(booking);
-                    log.info("Booking {} confirmed via Paystack", booking.getReference());
-                },
+                booking -> paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK"),
                 () -> log.warn("No booking found for Paystack reference {}", reference)
         );
     }

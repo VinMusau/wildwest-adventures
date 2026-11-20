@@ -4,7 +4,7 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
-import com.wildwest.api.booking.Booking;
+import com.wildwest.api.booking.BookingPaymentService;
 import com.wildwest.api.booking.BookingRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,10 +27,16 @@ public class StripeWebhookController {
 
     private final StripeProperties properties;
     private final BookingRepository bookingRepository;
+    private final BookingPaymentService paymentService;
 
-    public StripeWebhookController(StripeProperties properties, BookingRepository bookingRepository) {
+    public StripeWebhookController(
+            StripeProperties properties,
+            BookingRepository bookingRepository,
+            BookingPaymentService paymentService
+    ) {
         this.properties = properties;
         this.bookingRepository = bookingRepository;
+        this.paymentService = paymentService;
     }
 
     @PostMapping("/stripe")
@@ -67,20 +72,9 @@ public class StripeWebhookController {
         PaymentIntent intent = extractIntent(event);
         if (intent == null) return;
 
+        String method = intent.getPaymentMethod() != null ? intent.getPaymentMethod() : "STRIPE";
         bookingRepository.findByStripePaymentIntentId(intent.getId()).ifPresentOrElse(
-                booking -> {
-                    if (booking.getStatus() == Booking.Status.CONFIRMED) {
-                        log.info("Booking {} already confirmed, ignoring duplicate", booking.getReference());
-                        return;
-                    }
-                    booking.setStatus(Booking.Status.CONFIRMED);
-                    booking.setPaidAt(Instant.now());
-                    if (intent.getPaymentMethod() != null) {
-                        booking.setPaymentMethod(intent.getPaymentMethod());
-                    }
-                    bookingRepository.save(booking);
-                    log.info("Booking {} confirmed via Stripe", booking.getReference());
-                },
+                booking -> paymentService.recordSuccessfulPayment(booking.getId(), method),
                 () -> log.warn("No booking found for PaymentIntent {}", intent.getId())
         );
     }
