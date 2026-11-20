@@ -8,16 +8,15 @@ import com.wildwest.api.booking.Booking;
 import com.wildwest.api.booking.BookingEvents;
 import com.wildwest.api.booking.BookingRepository;
 import com.wildwest.api.payment.PaystackService;
+import java.time.Instant;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.Instant;
 
 @Service
 @Transactional
@@ -32,8 +31,7 @@ public class AdminBookingService {
             BookingRepository bookingRepository,
             AvailabilityRepository availabilityRepository,
             PaystackService paystackService,
-            ApplicationEventPublisher events
-    ) {
+            ApplicationEventPublisher events) {
         this.bookingRepository = bookingRepository;
         this.availabilityRepository = availabilityRepository;
         this.paystackService = paystackService;
@@ -42,22 +40,14 @@ public class AdminBookingService {
 
     @Transactional(readOnly = true)
     public Page<BookingAdminSummary> list(
-            Booking.Status status,
-            String tourSlug,
-            String search,
-            Instant from,
-            Instant to,
-            Pageable pageable
-    ) {
+            Booking.Status status, String tourSlug, String search, Instant from, Instant to, Pageable pageable) {
         Specification<Booking> spec = Specification.allOf(
                 AdminBookingSpecifications.hasStatus(status),
                 AdminBookingSpecifications.hasTourSlug(tourSlug),
                 AdminBookingSpecifications.matchesSearch(search),
                 AdminBookingSpecifications.createdAfter(from),
-                AdminBookingSpecifications.createdBefore(to)
-        );
-        return bookingRepository.findAll(spec, pageable)
-                .map(BookingAdminSummary::from);
+                AdminBookingSpecifications.createdBefore(to));
+        return bookingRepository.findAll(spec, pageable).map(BookingAdminSummary::from);
     }
 
     @Transactional(readOnly = true)
@@ -76,8 +66,7 @@ public class AdminBookingService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Already cancelled");
         }
         if (booking.getStatus() == Booking.Status.EXPIRED) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Expired bookings cannot be cancelled");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Expired bookings cannot be cancelled");
         }
 
         releaseInventory(booking);
@@ -96,11 +85,9 @@ public class AdminBookingService {
         if (booking.getStatus() == Booking.Status.CONFIRMED) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Already confirmed");
         }
-        if (booking.getStatus() == Booking.Status.CANCELLED
-                || booking.getStatus() == Booking.Status.EXPIRED) {
+        if (booking.getStatus() == Booking.Status.CANCELLED || booking.getStatus() == Booking.Status.EXPIRED) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Cannot confirm a booking that is " + booking.getStatus());
+                    HttpStatus.CONFLICT, "Cannot confirm a booking that is " + booking.getStatus());
         }
 
         booking.setStatus(Booking.Status.CONFIRMED);
@@ -118,30 +105,25 @@ public class AdminBookingService {
         Booking booking = loadBooking(reference);
 
         if (booking.getPaidAt() == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Booking has no completed payment to refund");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Booking has no completed payment to refund");
         }
         if (booking.getRefundedAt() != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Already refunded");
         }
         if (booking.getPaystackReference() == null) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "No Paystack reference — booking was not paid through Paystack");
+                    HttpStatus.CONFLICT, "No Paystack reference — booking was not paid through Paystack");
         }
 
         int refundAmount = amountCents != null ? amountCents : booking.getTotalCents();
         if (refundAmount <= 0) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Refund amount must be positive");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Refund amount must be positive");
         }
         if (refundAmount > booking.getTotalCents()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Refund exceeds paid amount");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Refund exceeds paid amount");
         }
 
-        String refundRef = paystackService.refund(
-                booking.getPaystackReference(), refundAmount);
+        String refundRef = paystackService.refund(booking.getPaystackReference(), refundAmount);
 
         booking.setRefundedAt(Instant.now());
         booking.setRefundReference(refundRef);
@@ -159,9 +141,10 @@ public class AdminBookingService {
     // ---------- internals ----------
 
     private Booking loadBooking(String reference) {
-        return bookingRepository.findByReference(reference)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Booking not found: " + reference));
+        return bookingRepository
+                .findByReference(reference)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Booking not found: " + reference));
     }
 
     private void releaseInventory(Booking booking) {

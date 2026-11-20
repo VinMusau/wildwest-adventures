@@ -3,10 +3,9 @@ package com.wildwest.api.availability;
 import com.wildwest.api.common.BaseEntity;
 import com.wildwest.api.tour.Tour;
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter

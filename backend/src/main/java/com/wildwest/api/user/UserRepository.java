@@ -1,16 +1,16 @@
 package com.wildwest.api.user;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import com.wildwest.api.admin.CustomerProjection;
-
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
+
     boolean existsByEmail(String email);
 
     @Query(value = """
@@ -29,8 +29,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     LEFT JOIN bookings b ON b.user_id = u.id
     GROUP BY u.id
     ORDER BY u.created_at DESC
-    """,
-            countQuery = "SELECT COUNT(*) FROM users",
-            nativeQuery = true)
+    """, countQuery = "SELECT COUNT(*) FROM users", nativeQuery = true)
     Page<CustomerProjection> findAllWithBookingStats(Pageable pageable);
 }

@@ -1,23 +1,37 @@
 package com.wildwest.api.ratelimit;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class RateLimiterTests {
 
     /** A clock the test moves by hand. */
     static final class TestClock extends Clock {
         private Instant now = Instant.parse("2026-01-01T00:00:00Z");
-        void advance(Duration d) { now = now.plus(d); }
-        @Override public Instant instant() { return now; }
-        @Override public ZoneOffset getZone() { return ZoneOffset.UTC; }
-        @Override public Clock withZone(java.time.ZoneId zone) { return this; }
+
+        void advance(Duration d) {
+            now = now.plus(d);
+        }
+
+        @Override
+        public Instant instant() {
+            return now;
+        }
+
+        @Override
+        public ZoneOffset getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(java.time.ZoneId zone) {
+            return this;
+        }
     }
 
     private final TestClock clock = new TestClock();

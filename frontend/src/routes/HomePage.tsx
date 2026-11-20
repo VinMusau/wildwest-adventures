@@ -17,9 +17,13 @@ export default function HomePage() {
     document.getElementById("styles")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const { data: travelStyles = [], isLoading: stylesLoading } = useTravelStyles();
-  const { data: destinations = [], isLoading: destinationsLoading } = useDestinations();
-  const { data: featuredTours = [], isLoading: toursLoading } = useTours({ featured: true });
+  const { data: travelStyles = [], isLoading: stylesLoading } =
+    useTravelStyles();
+  const { data: destinations = [], isLoading: destinationsLoading } =
+    useDestinations();
+  const { data: featuredTours = [], isLoading: toursLoading } = useTours({
+    featured: true,
+  });
   return (
     <main>
       <section

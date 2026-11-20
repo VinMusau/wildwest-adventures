@@ -57,7 +57,7 @@ export interface TourDetail extends Tour {
   itinerary: ItineraryDay[];
   inclusions: string[];
   images: TourImage[];
-  tourType: "SCHEDULED" | "ON_REQUEST" ;
+  tourType: "SCHEDULED" | "ON_REQUEST";
 }
 
 export type UserRole = "USER" | "ADMIN";
@@ -77,7 +77,7 @@ export interface AuthResponse {
 
 export interface Availability {
   id: string;
-  date: string;              // ISO date
+  date: string; // ISO date
   capacity: number;
   booked: number;
   remaining: number;
@@ -132,7 +132,11 @@ export interface Booking {
 export interface CreateBookingInput {
   tourSlug: string;
   departureDate: string;
-  travelers: Array<{ firstName: string; lastName: string; travelerType: TravelerType }>;
+  travelers: Array<{
+    firstName: string;
+    lastName: string;
+    travelerType: TravelerType;
+  }>;
   lead: {
     firstName: string;
     lastName: string;
@@ -147,9 +151,9 @@ export type PaymentProvider = "STRIPE" | "PAYSTACK";
 
 export interface PaymentInitResponse {
   provider: PaymentProvider;
-  reference: string | null;   // Paystack transaction reference
-  clientKey: string | null;   // Stripe client secret
-  accessCode: string | null;  // Paystack access_code for popup resume
+  reference: string | null; // Paystack transaction reference
+  clientKey: string | null; // Stripe client secret
+  accessCode: string | null; // Paystack access_code for popup resume
 }
 
 export interface AdminTourSummary {
@@ -262,8 +266,18 @@ export interface BookingAdminDetail {
   leadPhone: string | null;
   leadCountry: string | null;
   createdAt: string;
-  travelers: Array<{ id: string; firstName: string; lastName: string; travelerType: string }>;
-  addons: Array<{ id: string; code: string; label: string; priceCents: number }>;
+  travelers: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    travelerType: string;
+  }>;
+  addons: Array<{
+    id: string;
+    code: string;
+    label: string;
+    priceCents: number;
+  }>;
 }
 
 export interface AdminBookingFilters {

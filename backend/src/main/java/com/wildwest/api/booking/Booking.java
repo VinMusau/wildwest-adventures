@@ -5,13 +5,12 @@ import com.wildwest.api.common.BaseEntity;
 import com.wildwest.api.tour.Tour;
 import com.wildwest.api.user.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -19,7 +18,12 @@ import java.util.List;
 @Table(name = "bookings")
 public class Booking extends BaseEntity {
 
-    public enum Status { PENDING, CONFIRMED, CANCELLED, EXPIRED }
+    public enum Status {
+        PENDING,
+        CONFIRMED,
+        CANCELLED,
+        EXPIRED
+    }
 
     @Column(nullable = false, unique = true)
     private String reference;
@@ -102,7 +106,7 @@ public class Booking extends BaseEntity {
     @Column(name = "payment_provider", length = 20)
     private String paymentProvider = "STRIPE";
 
-        @Column(name = "refunded_at")
+    @Column(name = "refunded_at")
     private Instant refundedAt;
 
     @Column(name = "refund_reference", length = 120)

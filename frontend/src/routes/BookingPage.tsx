@@ -11,24 +11,59 @@ import PaystackPayment from "@/features/booking/PaystackPayment";
 import { useAuth } from "@/features/auth/AuthContext";
 import { formatPrice } from "@/lib/format";
 import { ApiError } from "@/lib/api";
-import type { Availability, Booking, PaymentInitResponse, TravelerType } from "@/types";
+import type {
+  Availability,
+  Booking,
+  PaymentInitResponse,
+  TravelerType,
+} from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/api";
 import { useToast } from "@/features/toast/useToast";
 import AvailabilitySkeleton from "../features/booking/AvailabilitySkeleton";
+import { useToday } from "@/lib/useToday";
 
-const STEPS = ["Dates & travellers", "Your details", "Make it yours", "Review & pay"];
+const STEPS = [
+  "Dates & travellers",
+  "Your details",
+  "Make it yours",
+  "Review & pay",
+];
 
-const ADDON_OPTIONS: Array<{ code: string; label: string; description: string; priceCents: number }> = [
-  { code: "airport-transfer", label: "Private airport transfer", description: "A seamless welcome from the moment you land.", priceCents: 18000 },
-  { code: "travel-cover",     label: "Comprehensive travel cover", description: "Peace of mind for every part of your journey.", priceCents: 32000 },
-  { code: "balloon-safari",   label: "Hot-air balloon safari", description: "See the Serengeti come alive from above.", priceCents: 62000 },
+const ADDON_OPTIONS: Array<{
+  code: string;
+  label: string;
+  description: string;
+  priceCents: number;
+}> = [
+  {
+    code: "airport-transfer",
+    label: "Private airport transfer",
+    description: "A seamless welcome from the moment you land.",
+    priceCents: 18000,
+  },
+  {
+    code: "travel-cover",
+    label: "Comprehensive travel cover",
+    description: "Peace of mind for every part of your journey.",
+    priceCents: 32000,
+  },
+  {
+    code: "balloon-safari",
+    label: "Hot-air balloon safari",
+    description: "See the Serengeti come alive from above.",
+    priceCents: 62000,
+  },
 ];
 
 interface Draft {
   departureDate: string | null;
   travelersCount: number;
-  travelerDetails: Array<{ firstName: string; lastName: string; travelerType: TravelerType }>;
+  travelerDetails: Array<{
+    firstName: string;
+    lastName: string;
+    travelerType: TravelerType;
+  }>;
   lead: {
     firstName: string;
     lastName: string;
@@ -40,6 +75,7 @@ interface Draft {
 }
 
 export default function BookingPage() {
+  const today = useToday();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -47,31 +83,34 @@ export default function BookingPage() {
 
   const urlDate = searchParams.get("date");
   const urlGuests = searchParams.get("guests");
-  
+
   const parsedGuests = Math.max(1, parseInt(urlGuests || "2", 10));
 
   const { data: tour, isLoading: tourLoading } = useTour(slug);
-  const { data: availability = [], isLoading: availLoading } = useAvailability(slug);
-  
+  const { data: availability = [], isLoading: availLoading } =
+    useAvailability(slug);
+
   const createBooking = useCreateBooking();
   const paymentInit = usePaymentInit();
   const [pendingBooking, setPendingBooking] = useState<Booking | null>(null);
-  const [paymentData, setPaymentData] = useState<PaymentInitResponse | null>(null);
+  const [paymentData, setPaymentData] = useState<PaymentInitResponse | null>(
+    null,
+  );
   const queryClient = useQueryClient();
   const toast = useToast();
 
   const [step, setStep] = useState(1);
-  
+
   const [draft, setDraft] = useState<Draft>(() => {
     const initialTravelers = Array.from({ length: parsedGuests }, () => ({
       firstName: "",
       lastName: "",
       travelerType: "ADULT" as TravelerType,
     }));
-    
+
     return {
-      departureDate: urlDate || null, 
-      travelersCount: parsedGuests,   
+      departureDate: urlDate || null,
+      travelersCount: parsedGuests,
       travelerDetails: initialTravelers,
       lead: {
         firstName: user?.firstName ?? "",
@@ -88,17 +127,18 @@ export default function BookingPage() {
 
   const selectedDate: Availability | undefined = useMemo(
     () => availability.find((a) => a.date === draft.departureDate),
-    [availability, draft.departureDate]
+    [availability, draft.departureDate],
   );
 
   const pricePerPerson = selectedDate?.priceCents ?? tour?.priceCents ?? 0;
   const subtotal = pricePerPerson * draft.travelersCount;
   const addonsTotal = useMemo(
     () =>
-      ADDON_OPTIONS
-        .filter((a) => draft.addons.includes(a.code))
-        .reduce((sum, a) => sum + a.priceCents * draft.travelersCount, 0),
-    [draft.addons, draft.travelersCount]
+      ADDON_OPTIONS.filter((a) => draft.addons.includes(a.code)).reduce(
+        (sum, a) => sum + a.priceCents * draft.travelersCount,
+        0,
+      ),
+    [draft.addons, draft.travelersCount],
   );
   const total = subtotal + addonsTotal;
 
@@ -114,13 +154,19 @@ export default function BookingPage() {
   }
 
   const canProceed = (() => {
-    if (step === 1) return Boolean(draft.departureDate) && draft.travelersCount > 0;
+    if (step === 1)
+      return Boolean(draft.departureDate) && draft.travelersCount > 0;
     if (step === 2) {
       const { firstName, lastName, email } = draft.lead;
       const allTravelersFilled = draft.travelerDetails.every(
-        (t) => t.firstName.trim() && t.lastName.trim()
+        (t) => t.firstName.trim() && t.lastName.trim(),
       );
-      return Boolean(firstName.trim() && lastName.trim() && email.includes("@") && allTravelersFilled);
+      return Boolean(
+        firstName.trim() &&
+        lastName.trim() &&
+        email.includes("@") &&
+        allTravelersFilled,
+      );
     }
     return true;
   })();
@@ -134,12 +180,20 @@ export default function BookingPage() {
           // The hold expired (or the booking is no longer pending): its seats were
           // released, so the next click reserves afresh.
           setPendingBooking(null);
-          setError("Your hold on these places expired. Reserve again to get a new 20-minute hold.");
-          toast.error("Your hold expired", { description: "Please reserve again." });
+          setError(
+            "Your hold on these places expired. Reserve again to get a new 20-minute hold.",
+          );
+          toast.error("Your hold expired", {
+            description: "Please reserve again.",
+          });
           return;
         }
-        toast.error("Payment initialization failed", { description: err.message });
-        setError(err instanceof ApiError ? err.message : "Could not start payment");
+        toast.error("Payment initialization failed", {
+          description: err.message,
+        });
+        setError(
+          err instanceof ApiError ? err.message : "Could not start payment",
+        );
       },
     });
   };
@@ -175,10 +229,10 @@ export default function BookingPage() {
         onError: (err) => {
           toast.error("Booking creation failed", { description: err.message });
           setError(
-            err instanceof ApiError ? err.message : "Could not create booking"
+            err instanceof ApiError ? err.message : "Could not create booking",
           );
         },
-      }
+      },
     );
   };
 
@@ -229,16 +283,28 @@ export default function BookingPage() {
 
               {tour.tourType === "ON_REQUEST" ? (
                 <>
-                  <p>Pick any date that works for you. We'll confirm it with our local experts.</p>
+                  <p>
+                    Pick any date that works for you. We'll confirm it with our
+                    local experts.
+                  </p>
                   <div style={{ margin: "24px 0" }}>
-                    <label style={{ display: "block", fontSize: 11, fontWeight: 600 }}>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: 11,
+                        fontWeight: 600,
+                      }}
+                    >
                       Preferred departure date
                       <input
                         type="date"
                         value={draft.departureDate || ""}
-                        min={new Date().toISOString().split("T")[0]}
+                        min={today}
                         onChange={(e) =>
-                          setDraft((prev) => ({ ...prev, departureDate: e.target.value }))
+                          setDraft((prev) => ({
+                            ...prev,
+                            departureDate: e.target.value,
+                          }))
                         }
                         style={{
                           display: "block",
@@ -287,7 +353,9 @@ export default function BookingPage() {
                               })}
                             </strong>
                             <small>
-                              {soldOut ? "Sold out" : `${a.remaining} places left`}
+                              {soldOut
+                                ? "Sold out"
+                                : `${a.remaining} places left`}
                             </small>
                             <span>{formatPrice(a.priceCents, a.currency)}</span>
                           </button>
@@ -492,21 +560,22 @@ export default function BookingPage() {
                 </>
               )}
 
-              {pendingBooking && !paymentData && (
-                paymentInit.isPending || !error ? (
+              {pendingBooking &&
+                !paymentData &&
+                (paymentInit.isPending || !error ? (
                   <p className="text-muted">Preparing secure payment…</p>
                 ) : (
                   <>
                     <p>
-                      Your place is reserved (reference {pendingBooking.reference}), but we
-                      couldn't start the payment.
+                      Your place is reserved (reference{" "}
+                      {pendingBooking.reference}), but we couldn't start the
+                      payment.
                     </p>
                     <p className="form-error" style={{ marginTop: 16 }}>
                       {error}
                     </p>
                   </>
-                )
-              )}
+                ))}
 
               {pendingBooking &&
                 paymentData?.provider === "PAYSTACK" &&

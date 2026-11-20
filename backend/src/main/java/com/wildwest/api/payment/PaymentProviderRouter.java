@@ -1,10 +1,9 @@
 package com.wildwest.api.payment;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class PaymentProviderRouter {
@@ -14,8 +13,7 @@ public class PaymentProviderRouter {
 
     public PaymentProviderRouter(
             Set<PaymentProvider> providerBeans,
-            @Value("${wildwest.payment.default-provider:PAYSTACK}") String defaultProvider
-    ) {
+            @Value("${wildwest.payment.default-provider:PAYSTACK}") String defaultProvider) {
         this.providers = new java.util.HashMap<>();
         for (PaymentProvider p : providerBeans) {
             providers.put(p.name(), p);
@@ -26,8 +24,7 @@ public class PaymentProviderRouter {
     public PaymentProvider current() {
         PaymentProvider provider = providers.get(defaultProvider);
         if (provider == null) {
-            throw new IllegalStateException(
-                    "No payment provider registered for: " + defaultProvider);
+            throw new IllegalStateException("No payment provider registered for: " + defaultProvider);
         }
         return provider;
     }

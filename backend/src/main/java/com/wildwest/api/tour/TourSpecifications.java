@@ -20,43 +20,34 @@ final class TourSpecifications {
     }
 
     static Specification<Tour> priceAtLeast(Integer cents) {
-        return (root, query, cb) -> cents == null
-                ? cb.conjunction()
-                : cb.greaterThanOrEqualTo(root.get("priceCents"), cents);
+        return (root, query, cb) ->
+                cents == null ? cb.conjunction() : cb.greaterThanOrEqualTo(root.get("priceCents"), cents);
     }
 
     static Specification<Tour> priceAtMost(Integer cents) {
-        return (root, query, cb) -> cents == null
-                ? cb.conjunction()
-                : cb.lessThanOrEqualTo(root.get("priceCents"), cents);
+        return (root, query, cb) ->
+                cents == null ? cb.conjunction() : cb.lessThanOrEqualTo(root.get("priceCents"), cents);
     }
 
     static Specification<Tour> durationAtLeast(Integer days) {
-        return (root, query, cb) -> days == null
-                ? cb.conjunction()
-                : cb.greaterThanOrEqualTo(root.get("durationDays"), days);
+        return (root, query, cb) ->
+                days == null ? cb.conjunction() : cb.greaterThanOrEqualTo(root.get("durationDays"), days);
     }
 
     static Specification<Tour> durationAtMost(Integer days) {
-        return (root, query, cb) -> days == null
-                ? cb.conjunction()
-                : cb.lessThanOrEqualTo(root.get("durationDays"), days);
+        return (root, query, cb) ->
+                days == null ? cb.conjunction() : cb.lessThanOrEqualTo(root.get("durationDays"), days);
     }
 
     static Specification<Tour> matchesText(String q) {
         return (root, query, cb) -> {
             if (q == null || q.isBlank()) return cb.conjunction();
             String pattern = "%" + q.toLowerCase() + "%";
-            return cb.or(
-                    cb.like(cb.lower(root.get("title")), pattern),
-                    cb.like(cb.lower(root.get("place")), pattern)
-            );
+            return cb.or(cb.like(cb.lower(root.get("title")), pattern), cb.like(cb.lower(root.get("place")), pattern));
         };
     }
 
     static Specification<Tour> isFeatured(Boolean featured) {
-        return (root, query, cb) -> featured == null
-                ? cb.conjunction()
-                : cb.equal(root.get("featured"), featured);
+        return (root, query, cb) -> featured == null ? cb.conjunction() : cb.equal(root.get("featured"), featured);
     }
 }

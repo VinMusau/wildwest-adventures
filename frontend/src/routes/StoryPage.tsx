@@ -73,8 +73,8 @@ export default function StoryPage() {
           <p>
             So we did the opposite. Fewer destinations. Smaller groups. Longer
             stays. Fewer things to tick off, more time to actually feel a place.
-            Twelve years on, we still design every journey as if we were
-            taking it ourselves.
+            Twelve years on, we still design every journey as if we were taking
+            it ourselves.
           </p>
           <Link to="/journeys" className="text-link" style={{ marginTop: 24 }}>
             See our journeys <Icon name="arrow" />

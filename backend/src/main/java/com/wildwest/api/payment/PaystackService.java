@@ -4,23 +4,27 @@ import com.wildwest.api.booking.Booking;
 import com.wildwest.api.booking.BookingPaymentService;
 import com.wildwest.api.booking.BookingRepository;
 import com.wildwest.api.user.User;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Service
 public class PaystackService implements PaymentProvider {
 
     private static final String PAYSTACK_BASE = "https://api.paystack.co";
+
+    /** Paystack's JSON responses, read as a map. */
+    private static final ParameterizedTypeReference<Map<String, Object>> JSON_OBJECT =
+            new ParameterizedTypeReference<>() {};
 
     private final BookingPaymentService paymentService;
     private final BookingRepository bookingRepository;
@@ -33,8 +37,7 @@ public class PaystackService implements PaymentProvider {
             BookingPaymentService paymentService,
             @Value("${wildwest.paystack.secret-key:}") String secretKey,
             @Value("${wildwest.paystack.currency:KES}") String chargeCurrency,
-            @Value("${wildwest.paystack.usd-to-kes-rate:128.0}") double usdToKesRate
-    ) {
+            @Value("${wildwest.paystack.usd-to-kes-rate:128.0}") double usdToKesRate) {
         this.bookingRepository = bookingRepository;
         this.paymentService = paymentService;
         this.chargeCurrency = chargeCurrency.toUpperCase();
@@ -55,26 +58,21 @@ public class PaystackService implements PaymentProvider {
     @Transactional
     public InitResult initialize(User user, Booking booking) {
         if (booking.getStatus() != Booking.Status.PENDING) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Booking is not awaiting payment");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Booking is not awaiting payment");
         }
 
-        if (booking.getExpiresAt() != null
-                && booking.getExpiresAt().isBefore(Instant.now())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Booking hold has expired");
+        if (booking.getExpiresAt() != null && booking.getExpiresAt().isBefore(Instant.now())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Booking hold has expired");
         }
 
         // Convert the booking total to the currency Paystack will actually charge
-        long chargeAmountCents = convertToChargeCurrency(
-                booking.getTotalCents(), booking.getCurrency());
+        long chargeAmountCents = convertToChargeCurrency(booking.getTotalCents(), booking.getCurrency());
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("email", booking.getLeadEmail());
         payload.put("amount", chargeAmountCents);
         payload.put("currency", chargeCurrency);
-        payload.put("reference",
-                "WWA-" + booking.getReference() + "-" + System.currentTimeMillis());
+        payload.put("reference", "WWA-" + booking.getReference() + "-" + System.currentTimeMillis());
 
         Map<String, String> metadata = new HashMap<>();
         metadata.put("bookingReference", booking.getReference());
@@ -90,20 +88,18 @@ public class PaystackService implements PaymentProvider {
 
         Map<String, Object> response;
         try {
-            response = restClient.post()
+            response = restClient
+                    .post()
                     .uri("/transaction/initialize")
                     .body(payload)
                     .retrieve()
-                    .body(Map.class);
+                    .body(JSON_OBJECT);
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_GATEWAY, "Paystack error: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Paystack error: " + e.getMessage());
         }
 
         if (response == null || !Boolean.TRUE.equals(response.get("status"))) {
-            String message = response != null
-                    ? String.valueOf(response.get("message"))
-                    : "Unknown Paystack error";
+            String message = response != null ? String.valueOf(response.get("message")) : "Unknown Paystack error";
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, message);
         }
 
@@ -139,8 +135,7 @@ public class PaystackService implements PaymentProvider {
 
         throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
-                "Paystack charge currency " + chargeCurrency
-                        + " does not support bookings in " + bookingCurrency);
+                "Paystack charge currency " + chargeCurrency + " does not support bookings in " + bookingCurrency);
     }
 
     private static final Logger log = LoggerFactory.getLogger(PaystackService.class);
@@ -149,13 +144,13 @@ public class PaystackService implements PaymentProvider {
     public boolean verify(String paystackReference) {
         Map<String, Object> response;
         try {
-            response = restClient.get()
+            response = restClient
+                    .get()
                     .uri("/transaction/verify/{ref}", paystackReference)
                     .retrieve()
-                    .body(Map.class);
+                    .body(JSON_OBJECT);
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_GATEWAY, "Paystack verify error: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Paystack verify error: " + e.getMessage());
         }
 
         if (response == null || !Boolean.TRUE.equals(response.get("status"))) {
@@ -171,7 +166,8 @@ public class PaystackService implements PaymentProvider {
 
         // true only if the booking ends up confirmed; a paid-but-unconfirmable booking
         // (cancelled, or expired and full) is flagged for a refund instead.
-        return bookingRepository.findByPaystackReference(paystackReference)
+        return bookingRepository
+                .findByPaystackReference(paystackReference)
                 .map(booking -> paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK"))
                 .map(outcome -> outcome != BookingPaymentService.Outcome.PAID_NEEDS_REFUND)
                 .orElse(false);
@@ -188,20 +184,13 @@ public class PaystackService implements PaymentProvider {
 
         Map<String, Object> response;
         try {
-            response = restClient.post()
-                    .uri("/refund")
-                    .body(body)
-                    .retrieve()
-                    .body(Map.class);
+            response = restClient.post().uri("/refund").body(body).retrieve().body(JSON_OBJECT);
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_GATEWAY, "Paystack refund error: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Paystack refund error: " + e.getMessage());
         }
 
         if (response == null || !Boolean.TRUE.equals(response.get("status"))) {
-            String message = response != null
-                    ? String.valueOf(response.get("message"))
-                    : "Unknown Paystack error";
+            String message = response != null ? String.valueOf(response.get("message")) : "Unknown Paystack error";
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, message);
         }
 

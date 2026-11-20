@@ -17,18 +17,29 @@ export default function AdminLayout() {
         </div>
 
         <nav className="admin-nav">
-          <NavLink to="/admin" end className={linkClass}>Dashboard</NavLink>
-          <NavLink to="/admin/tours" className={linkClass}>Tours</NavLink>
-          <NavLink to="/admin/bookings" className={linkClass}>Bookings</NavLink>
-          <NavLink to="/admin/customers" className={linkClass}>Customers</NavLink>
+          <NavLink to="/admin" end className={linkClass}>
+            Dashboard
+          </NavLink>
+          <NavLink to="/admin/tours" className={linkClass}>
+            Tours
+          </NavLink>
+          <NavLink to="/admin/bookings" className={linkClass}>
+            Bookings
+          </NavLink>
+          <NavLink to="/admin/customers" className={linkClass}>
+            Customers
+          </NavLink>
         </nav>
 
         <div className="admin-sidebar-foot">
           <small>
-            Signed in as<br />
+            Signed in as
+            <br />
             <strong>{user?.email}</strong>
           </small>
-          <button className="nav-link-btn" onClick={logout}>Sign out</button>
+          <button className="nav-link-btn" onClick={logout}>
+            Sign out
+          </button>
         </div>
       </aside>
 

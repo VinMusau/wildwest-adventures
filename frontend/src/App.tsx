@@ -1,10 +1,5 @@
 import { useEffect } from "react";
-import {
-  BrowserRouter,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import HomePage from "@/routes/HomePage";
@@ -72,10 +67,38 @@ function AppLayout() {
         <Route path="/cookies" element={<LegalPage />} />
 
         {/* Protected Customer Routes */}
-        <Route path="/book/:slug" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
-        <Route path="/confirmed/:reference" element={<ProtectedRoute><ConfirmationPage /></ProtectedRoute>} />
-        <Route path="/account/bookings" element={<ProtectedRoute><MyBookingsPage /></ProtectedRoute>} />
-        <Route path="/payment/return" element={<ProtectedRoute><PaymentReturnPage /></ProtectedRoute>} />
+        <Route
+          path="/book/:slug"
+          element={
+            <ProtectedRoute>
+              <BookingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/confirmed/:reference"
+          element={
+            <ProtectedRoute>
+              <ConfirmationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/bookings"
+          element={
+            <ProtectedRoute>
+              <MyBookingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/return"
+          element={
+            <ProtectedRoute>
+              <PaymentReturnPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Admin Routes (Notice requireAdmin) */}
         <Route
@@ -97,7 +120,7 @@ function AppLayout() {
         {/* Root 404 Catch-all */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-      
+
       {/* Hide WhatsApp on Admin pages */}
       {!isAdmin && <WhatsAppButton />}
     </>

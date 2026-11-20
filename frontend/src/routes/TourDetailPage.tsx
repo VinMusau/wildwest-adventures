@@ -18,7 +18,7 @@ export default function TourDetailPage() {
   const [openDay, setOpenDay] = useState<number>(1);
 
   const { data: related = [] } = useTours(
-    tour ? { destination: tour.destinationSlug } : {}
+    tour ? { destination: tour.destinationSlug } : {},
   );
 
   if (isLoading) {
@@ -31,40 +31,41 @@ export default function TourDetailPage() {
     );
   }
 
-   if (error || !tour) {
-     return (
-       <main className="light-page">
-         <Nav />
-         <div
-           className="section"
-           style={{
-             minHeight: "60vh",
-             display: "flex",
-             justifyContent: "center",
-             alignItems: "center",
-           }}
-         >
-           <div className="empty-state" style={{ border: "none" }}>
-             <div className="empty-state-icon">
-               <Icon name="map" size={32} />
-             </div>
-             <h3>Journey not found</h3>
-             <p>
-               The journey you're looking for doesn't exist or has been moved.
-             </p>
-             <Link to="/journeys" className="button primary">
-               Back to all journeys
-             </Link>
-           </div>
-         </div>
-         <Footer />
-       </main>
-     );
-   }
+  if (error || !tour) {
+    return (
+      <main className="light-page">
+        <Nav />
+        <div
+          className="section"
+          style={{
+            minHeight: "60vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <div className="empty-state" style={{ border: "none" }}>
+            <div className="empty-state-icon">
+              <Icon name="map" size={32} />
+            </div>
+            <h3>Journey not found</h3>
+            <p>
+              The journey you're looking for doesn't exist or has been moved.
+            </p>
+            <Link to="/journeys" className="button primary">
+              Back to all journeys
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
-  const gallery = tour.images.length > 0
-    ? tour.images
-    : [{ imageUrl: tour.imageUrl, altText: tour.title }];
+  const gallery =
+    tour.images.length > 0
+      ? tour.images
+      : [{ imageUrl: tour.imageUrl, altText: tour.title }];
 
   const relatedTours = related.filter((t) => t.slug !== tour.slug).slice(0, 3);
 
@@ -89,9 +90,7 @@ export default function TourDetailPage() {
         </div>
         <div>
           <Rating value={tour.rating.toFixed(1)} reviews={tour.reviewCount} />
-          <p>
-            {tour.durationDays} days · Private journey
-          </p>
+          <p>{tour.durationDays} days · Private journey</p>
         </div>
       </section>
 
@@ -135,8 +134,8 @@ export default function TourDetailPage() {
             <h2>Wild places, at your own pace.</h2>
             <p>
               Wake to the sound of the bush, spend unhurried days with expert
-              guides and return each evening to intimate camps chosen for
-              their character and sense of place.
+              guides and return each evening to intimate camps chosen for their
+              character and sense of place.
             </p>
             <div className="highlights">
               <div>
@@ -156,9 +155,7 @@ export default function TourDetailPage() {
 
           <section className="content-section">
             <span className="eyebrow">Your itinerary</span>
-            <h2>
-              {tour.durationDays} days, one remarkable story.
-            </h2>
+            <h2>{tour.durationDays} days, one remarkable story.</h2>
             {tour.itinerary.map((day) => {
               const isOpen = openDay === day.dayNumber;
               return (
@@ -178,7 +175,8 @@ export default function TourDetailPage() {
                       <p>{day.description}</p>
                       {(day.accommodation || day.mealsIncluded) && (
                         <span>
-                          {day.accommodation && `Accommodation: ${day.accommodation}`}
+                          {day.accommodation &&
+                            `Accommodation: ${day.accommodation}`}
                           {day.accommodation && day.mealsIncluded && " · "}
                           {day.mealsIncluded}
                         </span>

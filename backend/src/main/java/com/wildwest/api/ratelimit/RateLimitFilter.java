@@ -4,20 +4,19 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
+import java.util.List;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.time.Clock;
-import java.time.Duration;
-import java.util.List;
 
 /**
  * Per-IP limits on the endpoints that are worth abusing: guessing passwords, creating accounts
@@ -37,15 +36,30 @@ public class RateLimitFilter extends OncePerRequestFilter {
     record Rule(String name, String method, String path, int limit, Duration window, String message) {}
 
     static final List<Rule> RULES = List.of(
-            new Rule("login", "POST", "/api/v1/auth/login", 10, Duration.ofMinutes(5),
+            new Rule(
+                    "login",
+                    "POST",
+                    "/api/v1/auth/login",
+                    10,
+                    Duration.ofMinutes(5),
                     "Too many sign-in attempts. Please wait a few minutes and try again."),
-            new Rule("register", "POST", "/api/v1/auth/register", 5, Duration.ofHours(1),
+            new Rule(
+                    "register",
+                    "POST",
+                    "/api/v1/auth/register",
+                    5,
+                    Duration.ofHours(1),
                     "Too many accounts created from this network. Please try again later."),
-            new Rule("booking", "POST", "/api/v1/bookings", 20, Duration.ofHours(1),
-                    "Too many booking attempts. Please try again later.")
-    );
+            new Rule(
+                    "booking",
+                    "POST",
+                    "/api/v1/bookings",
+                    20,
+                    Duration.ofHours(1),
+                    "Too many booking attempts. Please try again later."));
 
-    private static final Duration LONGEST_WINDOW = RULES.stream().map(Rule::window).max(Duration::compareTo).orElseThrow();
+    private static final Duration LONGEST_WINDOW =
+            RULES.stream().map(Rule::window).max(Duration::compareTo).orElseThrow();
 
     private final RateLimiter limiter = new RateLimiter(Clock.systemUTC());
     private final boolean enabled;
@@ -61,10 +75,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            @NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain chain
-    ) throws ServletException, IOException {
+            @NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain chain)
+            throws ServletException, IOException {
         Rule rule = ruleFor(request);
         String client = request.getRemoteAddr();
         RateLimiter.Decision decision = limiter.tryAcquire(rule.name() + ":" + client, rule.limit(), rule.window());
@@ -80,8 +92,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         response.setContentType("application/problem+json");
         response.setCharacterEncoding("UTF-8");
         // message is one of the constants above, so no JSON escaping is needed.
-        response.getWriter().write("{\"type\":\"about:blank\",\"title\":\"Too Many Requests\",\"status\":429,"
-                + "\"detail\":\"" + rule.message() + "\",\"retryAfterSeconds\":" + retryAfterSeconds + "}");
+        response.getWriter()
+                .write("{\"type\":\"about:blank\",\"title\":\"Too Many Requests\",\"status\":429," + "\"detail\":\""
+                        + rule.message() + "\",\"retryAfterSeconds\":" + retryAfterSeconds + "}");
     }
 
     @Scheduled(fixedDelay = 10 * 60 * 1000)

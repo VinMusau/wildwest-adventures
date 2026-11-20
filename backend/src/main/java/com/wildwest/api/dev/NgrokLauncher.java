@@ -1,5 +1,11 @@
 package com.wildwest.api.dev;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -7,13 +13,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 
 /**
  * Spawns ngrok as a child process on application startup, if enabled.
@@ -49,17 +48,11 @@ public class NgrokLauncher implements ApplicationRunner, DisposableBean {
             return;
         }
 
-        log.info("Starting ngrok: {} http {} --url {}",
-                properties.binary(), properties.port(), properties.url());
+        log.info("Starting ngrok: {} http {} --url {}", properties.binary(), properties.port(), properties.url());
 
         ProcessBuilder pb = new ProcessBuilder(
-                properties.binary(),
-                "http",
-                String.valueOf(properties.port()),
-                "--url",
-                properties.url()
-        );
-        pb.inheritIO();   // pipe ngrok's output to the backend console
+                properties.binary(), "http", String.valueOf(properties.port()), "--url", properties.url());
+        pb.inheritIO(); // pipe ngrok's output to the backend console
 
         try {
             process = pb.start();

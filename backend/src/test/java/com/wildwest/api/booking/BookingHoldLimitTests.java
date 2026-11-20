@@ -1,5 +1,8 @@
 package com.wildwest.api.booking;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityRepository;
 import com.wildwest.api.booking.BookingDtos.BookingDto;
@@ -9,6 +12,10 @@ import com.wildwest.api.booking.BookingDtos.TravelerInput;
 import com.wildwest.api.user.User;
 import com.wildwest.api.user.UserRepository;
 import com.wildwest.api.user.UserRole;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,23 +23,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 @SpringBootTest
 class BookingHoldLimitTests {
 
     private static final String TOUR = "seychelles-island-hopping";
 
-    @Autowired BookingService bookingService;
-    @Autowired BookingRepository bookingRepository;
-    @Autowired AvailabilityRepository availabilityRepository;
-    @Autowired UserRepository userRepository;
+    @Autowired
+    BookingService bookingService;
+
+    @Autowired
+    BookingRepository bookingRepository;
+
+    @Autowired
+    AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     private User user;
     private Availability departure;
@@ -63,7 +69,9 @@ class BookingHoldLimitTests {
 
     @Test
     void customerCanHoldAtMostThreeUnpaidBookings() {
-        book(); book(); book();
+        book();
+        book();
+        book();
 
         assertThatThrownBy(this::book)
                 .isInstanceOf(ResponseStatusException.class)
@@ -87,8 +95,13 @@ class BookingHoldLimitTests {
     }
 
     private BookingDto book() {
-        return bookingService.create(user, new CreateBookingRequest(TOUR, departure.getDepartureDate(),
-                List.of(new TravelerInput("Ann", "Lee", "ADULT")),
-                new LeadInput("Ann", "Lee", "ann@example.com", null, null), null));
+        return bookingService.create(
+                user,
+                new CreateBookingRequest(
+                        TOUR,
+                        departure.getDepartureDate(),
+                        List.of(new TravelerInput("Ann", "Lee", "ADULT")),
+                        new LeadInput("Ann", "Lee", "ann@example.com", null, null),
+                        null));
     }
 }

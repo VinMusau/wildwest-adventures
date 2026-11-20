@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import Icon from "@/components/ui/Icon";
+import { useToday } from "@/lib/useToday";
 
 interface BookingCardProps {
   priceFrom: string;
@@ -21,8 +22,8 @@ export default function BookingCard({ priceFrom, bookHref }: BookingCardProps) {
   params.set("guests", guests.toString());
   const finalHref = `${bookHref}?${params.toString()}`;
 
-  // Get today's date in YYYY-MM-DD format for the "min" attribute
-  const today = new Date().toISOString().split("T")[0];
+  // Today's date in YYYY-MM-DD format for the "min" attribute
+  const today = useToday();
 
   return (
     <aside className="booking-card">
@@ -31,34 +32,28 @@ export default function BookingCard({ priceFrom, bookHref }: BookingCardProps) {
         {priceFrom} <small>per person</small>
       </h3>
       <hr />
-      
+
       <label>
         Preferred departure
-        <input 
-          type="date" 
+        <input
+          type="date"
           value={date}
           min={today}
           onChange={(e) => setDate(e.target.value)}
           style={{ cursor: "pointer" }}
         />
       </label>
-      
+
       <label>
         Travellers
         <div className="stepper">
-          <button 
-            type="button" 
-            onClick={handleMinus} 
-            disabled={guests <= 1}
-          >
+          <button type="button" onClick={handleMinus} disabled={guests <= 1}>
             −
           </button>
-          <span>{guests} {guests === 1 ? "guest" : "guests"}</span>
-          <button 
-            type="button" 
-            onClick={handlePlus} 
-            disabled={guests >= 8}
-          >
+          <span>
+            {guests} {guests === 1 ? "guest" : "guests"}
+          </span>
+          <button type="button" onClick={handlePlus} disabled={guests >= 8}>
             +
           </button>
         </div>
@@ -72,7 +67,7 @@ export default function BookingCard({ priceFrom, bookHref }: BookingCardProps) {
         <Icon name="shield" /> No payment required today
       </p>
       <hr />
-      <strong>Need a little help?  </strong>
+      <strong>Need a little help? </strong>
       <small>
         Speak to a destination expert
         <br />

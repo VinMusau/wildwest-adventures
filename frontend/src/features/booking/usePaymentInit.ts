@@ -7,7 +7,7 @@ export function usePaymentInit() {
     mutationFn: (reference: string) =>
       apiPost<PaymentInitResponse>(
         `/v1/bookings/${reference}/payment-init`,
-        {}
+        {},
       ),
   });
 }

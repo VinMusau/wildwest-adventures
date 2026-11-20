@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import ImageUploader from "@/components/admin/ImageUploader"; // Assuming you created this
-import { useTour } from "@/features/tours/useTour";
 import { useDestinations } from "@/features/destinations/useDestinations";
 import { useTravelStyles } from "@/features/travel-styles/useTravelStyles";
 import {
@@ -14,7 +13,12 @@ import {
 import { ApiError } from "@/lib/api";
 import type { AdminItineraryDay, TourWriteInput } from "@/types";
 import { useToast } from "@/features/toast/useToast";
-import { useAdminAvailability, useAddAvailability, useDeleteAvailability } from "@/features/admin/useAdminAvailability";
+import {
+  useAdminAvailability,
+  useAddAvailability,
+  useDeleteAvailability,
+} from "@/features/admin/useAdminAvailability";
+import { useToday } from "@/lib/useToday";
 
 const EMPTY: TourWriteInput = {
   title: "",
@@ -37,12 +41,15 @@ const EMPTY: TourWriteInput = {
 };
 
 export default function AdminTourEditPage() {
+  const today = useToday();
   const { slug } = useParams<{ slug: string }>();
   const isNew = slug === "new" || !slug;
   const navigate = useNavigate();
   const toast = useToast();
 
-  const { data: existing, isLoading: loadingExisting } = useAdminTour(isNew ? undefined : slug);
+  const { data: existing, isLoading: loadingExisting } = useAdminTour(
+    isNew ? undefined : slug,
+  );
   const { data: destinations = [] } = useDestinations();
   const { data: styles = [] } = useTravelStyles();
 
@@ -61,40 +68,43 @@ export default function AdminTourEditPage() {
   const addAvailability = useAddAvailability(slug || "");
   const deleteAvailability = useDeleteAvailability(slug || "");
 
-  useEffect(() => {
-    if (existing) {
-      setForm({
-        title: existing.title,
-        slug: existing.slug,
-        place: existing.place,
-        destinationSlug: existing.destinationSlug,
-        durationDays: existing.durationDays,
-        priceCents: existing.priceCents,
-        currency: existing.currency,
-        rating: existing.rating,
-        reviewCount: existing.reviewCount,
-        tag: existing.tag,
-        imageUrl: existing.imageUrl,
-        featured: existing.featured,
-        displayOrder: existing.displayOrder,
-        styleSlugs: existing.styleSlugs,
-        itinerary: existing.itinerary.map((d) => ({
-          dayNumber: d.dayNumber,
-          title: d.title,
-          description: d.description,
-          accommodation: d.accommodation ?? "",
-          mealsIncluded: d.mealsIncluded ?? "",
-        })),
-        inclusions: existing.inclusions,
-        tourType: existing.tourType || "SCHEDULED", // <-- Added
-      });
-      setPriceUsd((existing.priceCents / 100).toString());
-    }
-  }, [existing]);
+  // Fill the form when the tour loads (and if it's refetched with new data).
+  // Done during render rather than in an effect, as React recommends for
+  // state derived from props: https://react.dev/learn/you-might-not-need-an-effect
+  const [loadedTour, setLoadedTour] = useState<typeof existing>(undefined);
+  if (existing && existing !== loadedTour) {
+    setLoadedTour(existing);
+    setForm({
+      title: existing.title,
+      slug: existing.slug,
+      place: existing.place,
+      destinationSlug: existing.destinationSlug,
+      durationDays: existing.durationDays,
+      priceCents: existing.priceCents,
+      currency: existing.currency,
+      rating: existing.rating,
+      reviewCount: existing.reviewCount,
+      tag: existing.tag,
+      imageUrl: existing.imageUrl,
+      featured: existing.featured,
+      displayOrder: existing.displayOrder,
+      styleSlugs: existing.styleSlugs,
+      itinerary: existing.itinerary.map((d) => ({
+        dayNumber: d.dayNumber,
+        title: d.title,
+        description: d.description,
+        accommodation: d.accommodation ?? "",
+        mealsIncluded: d.mealsIncluded ?? "",
+      })),
+      inclusions: existing.inclusions,
+      tourType: existing.tourType || "SCHEDULED",
+    });
+    setPriceUsd((existing.priceCents / 100).toString());
+  }
 
   const updateField = <K extends keyof TourWriteInput>(
     key: K,
-    value: TourWriteInput[K]
+    value: TourWriteInput[K],
   ) => setForm((f) => ({ ...f, [key]: value }));
 
   const toggleStyle = (styleSlug: string) => {
@@ -133,7 +143,10 @@ export default function AdminTourEditPage() {
   const removeDay = (index: number) => {
     setForm((f) => {
       const days = f.itinerary.filter((_, i) => i !== index);
-      return { ...f, itinerary: days.map((d, i) => ({ ...d, dayNumber: i + 1 })) };
+      return {
+        ...f,
+        itinerary: days.map((d, i) => ({ ...d, dayNumber: i + 1 })),
+      };
     });
   };
 
@@ -167,7 +180,8 @@ export default function AdminTourEditPage() {
         },
         onError: (err) => {
           toast.error("Could not add date", {
-            description: err instanceof ApiError ? err.message : "Please try again.",
+            description:
+              err instanceof ApiError ? err.message : "Please try again.",
           });
         },
       },
@@ -192,7 +206,8 @@ export default function AdminTourEditPage() {
         navigate(`/admin/tours/${saved.slug}/edit`);
       },
       onError: (err) => {
-        const message = err instanceof ApiError ? err.message : "Could not save tour";
+        const message =
+          err instanceof ApiError ? err.message : "Could not save tour";
         setError(message);
         toast.error("Could not save tour", { description: message });
       },
@@ -200,7 +215,11 @@ export default function AdminTourEditPage() {
   };
 
   if (!isNew && loadingExisting) {
-    return <div className="admin-page"><p className="text-muted">Loading…</p></div>;
+    return (
+      <div className="admin-page">
+        <p className="text-muted">Loading…</p>
+      </div>
+    );
   }
 
   return (
@@ -482,7 +501,7 @@ export default function AdminTourEditPage() {
             <input
               type="date"
               value={newDate}
-              min={new Date().toISOString().split("T")[0]}
+              min={today}
               onChange={(e) => setNewDate(e.target.value)}
             />
             <input
@@ -532,7 +551,10 @@ export default function AdminTourEditPage() {
                         deleteAvailability.mutate(a.id, {
                           onError: (err) => {
                             toast.error("Could not remove date", {
-                              description: err instanceof ApiError ? err.message : "Please try again.",
+                              description:
+                                err instanceof ApiError
+                                  ? err.message
+                                  : "Please try again.",
                             });
                           },
                         });

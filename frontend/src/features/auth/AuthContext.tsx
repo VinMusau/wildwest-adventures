@@ -23,17 +23,14 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Only loading if there's a stored token to check.
+  const [loading, setLoading] = useState(() => tokenStorage.get() !== null);
   const toast = useToast();
 
   // On mount: if a token exists, try to fetch the current user
   useEffect(() => {
-    const token = tokenStorage.get();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    
+    if (!tokenStorage.get()) return;
+
     authApi
       .me()
       .then(setUser)
@@ -49,20 +46,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handler = (e: Event) => {
       setUser(null);
-      
+
       // Only show the toast if the API didn't mark the event as "silent"
       const customEvent = e as CustomEvent;
       if (!customEvent.detail?.silent) {
-        toast.info("Your session has expired", { 
-          description: "Please log in again." 
+        toast.info("Your session has expired", {
+          description: "Please log in again.",
         });
       }
     };
-    
+
     window.addEventListener(AUTH_EXPIRED_EVENT, handler);
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handler);
-  }, [toast]); 
-  
+  }, [toast]);
+
   const login = useCallback(async (input: LoginInput): Promise<User> => {
     const res = await authApi.login(input);
     tokenStorage.set(res.token);

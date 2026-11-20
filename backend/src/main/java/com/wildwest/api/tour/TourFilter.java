@@ -9,5 +9,4 @@ public record TourFilter(
         Integer maxDays,
         String q,
         Boolean featured,
-        String sort
-) {}
+        String sort) {}

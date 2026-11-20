@@ -1,5 +1,7 @@
 package com.wildwest.api.mail;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.wildwest.api.admin.AdminBookingService;
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityRepository;
@@ -14,6 +16,9 @@ import com.wildwest.api.booking.BookingService;
 import com.wildwest.api.user.User;
 import com.wildwest.api.user.UserRepository;
 import com.wildwest.api.user.UserRole;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,14 +28,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = {"wildwest.mail.enabled=true", "wildwest.mail.from=bookings@example.test"})
 class BookingEmailTests {
@@ -38,13 +36,22 @@ class BookingEmailTests {
     /** Records messages instead of sending them. */
     static class RecordingMailSender extends JavaMailSenderImpl {
         final List<SimpleMailMessage> sent = new CopyOnWriteArrayList<>();
-        @Override public void send(SimpleMailMessage message) { sent.add(message); }
-        @Override public void send(SimpleMailMessage... messages) { sent.addAll(List.of(messages)); }
+
+        @Override
+        public void send(SimpleMailMessage message) {
+            sent.add(message);
+        }
+
+        @Override
+        public void send(SimpleMailMessage... messages) {
+            sent.addAll(List.of(messages));
+        }
     }
 
     @TestConfiguration
     static class MailConfig {
-        @Bean @Primary
+        @Bean
+        @Primary
         RecordingMailSender recordingMailSender() {
             return new RecordingMailSender();
         }
@@ -52,13 +59,26 @@ class BookingEmailTests {
 
     private static final String TOUR = "okavango-elephants";
 
-    @Autowired RecordingMailSender mail;
-    @Autowired BookingService bookingService;
-    @Autowired BookingPaymentService paymentService;
-    @Autowired AdminBookingService adminBookingService;
-    @Autowired BookingRepository bookingRepository;
-    @Autowired AvailabilityRepository availabilityRepository;
-    @Autowired UserRepository userRepository;
+    @Autowired
+    RecordingMailSender mail;
+
+    @Autowired
+    BookingService bookingService;
+
+    @Autowired
+    BookingPaymentService paymentService;
+
+    @Autowired
+    AdminBookingService adminBookingService;
+
+    @Autowired
+    BookingRepository bookingRepository;
+
+    @Autowired
+    AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     private User user;
     private Availability departure;
@@ -100,7 +120,8 @@ class BookingEmailTests {
         assertThat(email.getTo()).containsExactly(leadEmail);
         assertThat(email.getFrom()).isEqualTo("bookings@example.test");
         assertThat(email.getSubject()).startsWith("Booking confirmed").contains(booking.reference());
-        assertThat(email.getText()).contains("Hi Ann", "Elephants of the Okavango", booking.reference(), "/account/bookings");
+        assertThat(email.getText())
+                .contains("Hi Ann", "Elephants of the Okavango", booking.reference(), "/account/bookings");
     }
 
     @Test
@@ -128,9 +149,14 @@ class BookingEmailTests {
     }
 
     private BookingDto book() {
-        return bookingService.create(user, new CreateBookingRequest(TOUR, departure.getDepartureDate(),
-                List.of(new TravelerInput("Ann", "Lee", "ADULT")),
-                new LeadInput("Ann", "Lee", leadEmail, null, null), null));
+        return bookingService.create(
+                user,
+                new CreateBookingRequest(
+                        TOUR,
+                        departure.getDepartureDate(),
+                        List.of(new TravelerInput("Ann", "Lee", "ADULT")),
+                        new LeadInput("Ann", "Lee", leadEmail, null, null),
+                        null));
     }
 
     /** Emails are sent on a background thread after commit; wait up to 5 s for one. */

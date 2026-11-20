@@ -1,12 +1,11 @@
 package com.wildwest.api.tour;
 
+import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PathVariable;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/tours")
@@ -28,12 +27,9 @@ public class TourController {
             @RequestParam(required = false) Integer maxDays,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) Boolean featured,
-            @RequestParam(required = false) String sort
-    ) {
-        return service.search(new TourFilter(
-                destination, style, minPrice, maxPrice,
-                minDays, maxDays, q, featured, sort
-        ));
+            @RequestParam(required = false) String sort) {
+        return service.search(
+                new TourFilter(destination, style, minPrice, maxPrice, minDays, maxDays, q, featured, sort));
     }
 
     @GetMapping("/{slug}")

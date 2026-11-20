@@ -26,8 +26,9 @@ public class RateLimiter {
     public Decision tryAcquire(String key, int limit, Duration window) {
         long now = clock.millis();
         long windowMillis = window.toMillis();
-        Window w = windows.compute(key, (k, current) ->
-                current == null || now - current.startMillis() >= windowMillis
+        Window w = windows.compute(
+                key,
+                (k, current) -> current == null || now - current.startMillis() >= windowMillis
                         ? new Window(now, 1)
                         : new Window(current.startMillis(), current.count() + 1));
         if (w.count() <= limit) {

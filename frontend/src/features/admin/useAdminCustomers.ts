@@ -7,7 +7,7 @@ export function useAdminCustomers(page = 0, size = 25) {
     queryKey: ["admin", "customers", page, size],
     queryFn: () =>
       apiGet<AdminCustomersPage>(
-        `/v1/admin/customers?page=${page}&size=${size}`
+        `/v1/admin/customers?page=${page}&size=${size}`,
       ),
     placeholderData: (prev) => prev,
   });

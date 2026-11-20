@@ -50,8 +50,8 @@ export default function PaystackPayment({
       >
         <strong>Pay with Paystack</strong>
         <p style={{ fontSize: 13, color: "var(--muted)" }}>
-          Card, M-Pesa, Airtel Money, or bank transfer — all handled securely
-          by Paystack.
+          Card, M-Pesa, Airtel Money, or bank transfer — all handled securely by
+          Paystack.
         </p>
       </div>
 

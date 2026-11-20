@@ -16,8 +16,7 @@ public final class AdminDashboardDtos {
             long cancelledTotal,
             long pendingTotal,
             long expiredTotal,
-            long totalBookings
-    ) {}
+            long totalBookings) {}
 
     public record RevenuePoint(LocalDate date, long revenueCents, long bookingsCount) {}
 
@@ -30,13 +29,11 @@ public final class AdminDashboardDtos {
             String status,
             int totalCents,
             String currency,
-            java.time.Instant createdAt
-    ) {}
+            java.time.Instant createdAt) {}
 
     public record DashboardResponse(
             KpiSummary kpis,
             List<RevenuePoint> revenueSeries,
             List<TopTour> topTours,
-            List<RecentBooking> recentBookings
-    ) {}
+            List<RecentBooking> recentBookings) {}
 }

@@ -1,14 +1,13 @@
 package com.wildwest.api.booking;
 
 import com.wildwest.api.availability.AvailabilityRepository;
+import java.time.Instant;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.UUID;
 
 /** Ends seat holds on bookings that were never paid. */
 @Service

@@ -1,7 +1,6 @@
 package com.wildwest.api.tour;
 
 import com.wildwest.api.travelstyle.TravelStyle;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -21,8 +20,7 @@ public record TourSummaryDto(
         String tag,
         String imageUrl,
         boolean featured,
-        List<String> styleSlugs
-) {
+        List<String> styleSlugs) {
     public static TourSummaryDto from(Tour tour) {
         return new TourSummaryDto(
                 tour.getId(),
@@ -39,7 +37,6 @@ public record TourSummaryDto(
                 tour.getTag(),
                 tour.getImageUrl(),
                 Boolean.TRUE.equals(tour.getFeatured()),
-                tour.getStyles().stream().map(TravelStyle::getSlug).sorted().toList()
-        );
+                tour.getStyles().stream().map(TravelStyle::getSlug).sorted().toList());
     }
 }

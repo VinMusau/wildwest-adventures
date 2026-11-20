@@ -1,0 +1,8 @@
+# Formatting-only commits, skipped by `git blame` (GitHub does this automatically;
+# locally: git config blame.ignoreRevsFile .git-blame-ignore-revs).
+
+# style(frontend): format with oxfmt
+403ba06701f4f4a107d9422ff40404e4f3a005a1
+
+# style(backend): format with palantir-java-format
+bc91ee369678f8dea4a6b7a7392d7d74c314aef8

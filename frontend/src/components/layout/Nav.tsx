@@ -48,10 +48,18 @@ export default function Nav({ light = false }: NavProps) {
       <Logo light={light} />
 
       <nav className={`nav-links ${open ? "open" : ""}`}>
-        <Link to="/journeys" onClick={close}>Journeys</Link>
-        <Link to="/destinations" onClick={close}>Destinations</Link>
-        <Link to="/styles" onClick={close}>Travel styles</Link>
-        <Link to="/story" onClick={close}>Our story</Link>
+        <Link to="/journeys" onClick={close}>
+          Journeys
+        </Link>
+        <Link to="/destinations" onClick={close}>
+          Destinations
+        </Link>
+        <Link to="/styles" onClick={close}>
+          Travel styles
+        </Link>
+        <Link to="/story" onClick={close}>
+          Our story
+        </Link>
 
         {user ? (
           <div className="nav-user-menu" ref={menuRef}>

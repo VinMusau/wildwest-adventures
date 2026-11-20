@@ -1,11 +1,8 @@
 package com.wildwest.api.admin;
 
 import com.wildwest.api.booking.Booking;
-import com.wildwest.api.booking.BookingAddon;
-import com.wildwest.api.booking.BookingTraveler;
 import com.wildwest.api.booking.BookingDtos.AddonDto;
 import com.wildwest.api.booking.BookingDtos.TravelerDto;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -30,8 +27,7 @@ public final class AdminBookingDtos {
             String paymentProvider,
             Instant createdAt,
             Instant paidAt,
-            Instant refundedAt
-    ) {
+            Instant refundedAt) {
         public static BookingAdminSummary from(Booking b) {
             return new BookingAdminSummary(
                     b.getId(),
@@ -48,8 +44,7 @@ public final class AdminBookingDtos {
                     b.getPaymentProvider(),
                     b.getCreatedAt(),
                     b.getPaidAt(),
-                    b.getRefundedAt()
-            );
+                    b.getRefundedAt());
         }
     }
 
@@ -85,8 +80,7 @@ public final class AdminBookingDtos {
             String leadCountry,
             Instant createdAt,
             List<TravelerDto> travelers,
-            List<AddonDto> addons
-    ) {
+            List<AddonDto> addons) {
         public static BookingAdminDetail from(Booking b) {
             return new BookingAdminDetail(
                     b.getId(),
@@ -120,8 +114,7 @@ public final class AdminBookingDtos {
                     b.getLeadCountry(),
                     b.getCreatedAt(),
                     b.getTravelers().stream().map(TravelerDto::from).toList(),
-                    b.getAddons().stream().map(AddonDto::from).toList()
-            );
+                    b.getAddons().stream().map(AddonDto::from).toList());
         }
     }
 

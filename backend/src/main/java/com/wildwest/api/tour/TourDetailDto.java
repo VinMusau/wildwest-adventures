@@ -1,7 +1,6 @@
 package com.wildwest.api.tour;
 
 import com.wildwest.api.travelstyle.TravelStyle;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -24,24 +23,17 @@ public record TourDetailDto(
         List<String> styleSlugs,
         List<ItineraryDayDto> itinerary,
         List<String> inclusions,
-        List<TourImageDto> images
-) {
+        List<TourImageDto> images) {
 
     public record ItineraryDayDto(
-            int dayNumber,
-            String title,
-            String description,
-            String accommodation,
-            String mealsIncluded
-    ) {
+            int dayNumber, String title, String description, String accommodation, String mealsIncluded) {
         public static ItineraryDayDto from(TourItineraryDay day) {
             return new ItineraryDayDto(
                     day.getDayNumber(),
                     day.getTitle(),
                     day.getDescription(),
                     day.getAccommodation(),
-                    day.getMealsIncluded()
-            );
+                    day.getMealsIncluded());
         }
     }
 
@@ -70,7 +62,6 @@ public record TourDetailDto(
                 tour.getStyles().stream().map(TravelStyle::getSlug).sorted().toList(),
                 tour.getItineraryDays().stream().map(ItineraryDayDto::from).toList(),
                 tour.getInclusions().stream().map(TourInclusion::getLabel).toList(),
-                tour.getImages().stream().map(TourImageDto::from).toList()
-        );
+                tour.getImages().stream().map(TourImageDto::from).toList());
     }
 }

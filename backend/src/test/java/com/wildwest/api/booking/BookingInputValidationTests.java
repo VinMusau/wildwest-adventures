@@ -1,5 +1,7 @@
 package com.wildwest.api.booking;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.wildwest.api.auth.AuthDtos.RegisterRequest;
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityRepository;
@@ -12,17 +14,14 @@ import com.wildwest.api.user.UserRepository;
 import com.wildwest.api.user.UserRole;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class BookingInputValidationTests {
@@ -31,22 +30,31 @@ class BookingInputValidationTests {
     private static final TravelerInput ADULT = new TravelerInput("Ann", "Lee", "ADULT");
     private static final LeadInput LEAD = new LeadInput("Ann", "Lee", "ann@example.com", "+254700000000", "Kenya");
 
-    @Autowired Validator validator;
-    @Autowired BookingService bookingService;
-    @Autowired BookingRepository bookingRepository;
-    @Autowired AvailabilityRepository availabilityRepository;
-    @Autowired UserRepository userRepository;
+    @Autowired
+    Validator validator;
+
+    @Autowired
+    BookingService bookingService;
+
+    @Autowired
+    BookingRepository bookingRepository;
+
+    @Autowired
+    AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     @Test
     void validRequestPasses() {
-        assertThat(violations(request(List.of(ADULT), LEAD, List.of("airport-transfer")))).isEmpty();
+        assertThat(violations(request(List.of(ADULT), LEAD, List.of("airport-transfer"))))
+                .isEmpty();
     }
 
     @Test
     void overlongPhoneAndCountryAreRejectedWithAFieldMessage() {
         LeadInput lead = new LeadInput("Ann", "Lee", "ann@example.com", "9".repeat(51), "x".repeat(101));
-        assertThat(violations(request(List.of(ADULT), lead, null)))
-                .containsKeys("lead.phone", "lead.country");
+        assertThat(violations(request(List.of(ADULT), lead, null))).containsKeys("lead.phone", "lead.country");
     }
 
     @Test
@@ -64,7 +72,8 @@ class BookingInputValidationTests {
         TravelerInput infant = new TravelerInput("Baby", "Lee", "INFANT");
         assertThat(violations(request(List.of(infant), LEAD, null)))
                 .containsEntry("travelers[0].travelerType", "must be ADULT or CHILD");
-        assertThat(violations(request(List.of(new TravelerInput("Kid", "Lee", "child")), LEAD, null))).isEmpty();
+        assertThat(violations(request(List.of(new TravelerInput("Kid", "Lee", "child")), LEAD, null)))
+                .isEmpty();
     }
 
     @Test
@@ -80,10 +89,18 @@ class BookingInputValidationTests {
         Availability departure = dates.get(dates.size() - 1);
         int bookedBefore = departure.getBooked();
         try {
-            BookingDto once = bookingService.create(saved, new CreateBookingRequest(TOUR, departure.getDepartureDate(),
-                    List.of(ADULT), LEAD, List.of("airport-transfer")));
-            BookingDto thrice = bookingService.create(saved, new CreateBookingRequest(TOUR, departure.getDepartureDate(),
-                    List.of(ADULT), LEAD, List.of("airport-transfer", "airport-transfer", "airport-transfer")));
+            BookingDto once = bookingService.create(
+                    saved,
+                    new CreateBookingRequest(
+                            TOUR, departure.getDepartureDate(), List.of(ADULT), LEAD, List.of("airport-transfer")));
+            BookingDto thrice = bookingService.create(
+                    saved,
+                    new CreateBookingRequest(
+                            TOUR,
+                            departure.getDepartureDate(),
+                            List.of(ADULT),
+                            LEAD,
+                            List.of("airport-transfer", "airport-transfer", "airport-transfer")));
 
             assertThat(thrice.addons()).hasSize(1);
             assertThat(thrice.addonsTotalCents()).isEqualTo(once.addonsTotalCents());
@@ -102,7 +119,8 @@ class BookingInputValidationTests {
 
     /** Field path to message. */
     private Map<String, String> violations(Object o) {
-        return validator.validate(o).stream().collect(Collectors.toMap(
-                c -> c.getPropertyPath().toString(), ConstraintViolation::getMessage, (a, b) -> a));
+        return validator.validate(o).stream()
+                .collect(Collectors.toMap(
+                        c -> c.getPropertyPath().toString(), ConstraintViolation::getMessage, (a, b) -> a));
     }
 }

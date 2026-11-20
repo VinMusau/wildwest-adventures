@@ -1,5 +1,7 @@
 package com.wildwest.api.booking;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityRepository;
 import com.wildwest.api.booking.BookingDtos.BookingDto;
@@ -10,28 +12,34 @@ import com.wildwest.api.booking.BookingPaymentService.Outcome;
 import com.wildwest.api.user.User;
 import com.wildwest.api.user.UserRepository;
 import com.wildwest.api.user.UserRole;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 class BookingPaymentServiceTests {
 
     private static final String TOUR = "patagonia-beyond-map";
 
-    @Autowired BookingPaymentService paymentService;
-    @Autowired BookingService bookingService;
-    @Autowired BookingRepository bookingRepository;
-    @Autowired AvailabilityRepository availabilityRepository;
-    @Autowired UserRepository userRepository;
+    @Autowired
+    BookingPaymentService paymentService;
+
+    @Autowired
+    BookingService bookingService;
+
+    @Autowired
+    BookingRepository bookingRepository;
+
+    @Autowired
+    AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     private User user;
     private Availability departure;
@@ -63,7 +71,8 @@ class BookingPaymentServiceTests {
     void pendingBookingIsConfirmed() {
         Booking booking = book(2);
 
-        assertThat(paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK")).isEqualTo(Outcome.CONFIRMED);
+        assertThat(paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK"))
+                .isEqualTo(Outcome.CONFIRMED);
 
         Booking after = reload(booking);
         assertThat(after.getStatus()).isEqualTo(Booking.Status.CONFIRMED);
@@ -103,7 +112,8 @@ class BookingPaymentServiceTests {
         Booking booking = book(2);
         expire(booking);
 
-        assertThat(paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK")).isEqualTo(Outcome.REINSTATED);
+        assertThat(paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK"))
+                .isEqualTo(Outcome.REINSTATED);
 
         assertThat(reload(booking).getStatus()).isEqualTo(Booking.Status.CONFIRMED);
         assertThat(seatsBooked()).isEqualTo(bookedBefore + 2); // seats taken again
@@ -113,7 +123,8 @@ class BookingPaymentServiceTests {
     void expiredBookingOnAFullDepartureIsFlaggedForRefund() {
         Booking booking = book(2);
         expire(booking);
-        int capacity = availabilityRepository.findById(departure.getId()).orElseThrow().getCapacity();
+        int capacity =
+                availabilityRepository.findById(departure.getId()).orElseThrow().getCapacity();
         setSeatsBooked(capacity); // someone else took the seats
 
         assertThat(paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK"))
@@ -129,9 +140,14 @@ class BookingPaymentServiceTests {
         List<TravelerInput> people = IntStream.range(0, travelers)
                 .mapToObj(i -> new TravelerInput("Traveler" + i, "Test", "ADULT"))
                 .toList();
-        BookingDto dto = bookingService.create(user, new CreateBookingRequest(
-                TOUR, departure.getDepartureDate(), people,
-                new LeadInput("Lead", "Test", "lead@example.test", null, null), null));
+        BookingDto dto = bookingService.create(
+                user,
+                new CreateBookingRequest(
+                        TOUR,
+                        departure.getDepartureDate(),
+                        people,
+                        new LeadInput("Lead", "Test", "lead@example.test", null, null),
+                        null));
         return bookingRepository.findByReference(dto.reference()).orElseThrow();
     }
 

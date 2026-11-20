@@ -5,24 +5,22 @@ import com.wildwest.api.admin.AdminTourDtos.ItineraryDayInput;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminDetail;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminSummary;
 import com.wildwest.api.admin.AdminTourDtos.TourWriteRequest;
+import com.wildwest.api.availability.Availability;
+import com.wildwest.api.availability.AvailabilityDto;
+import com.wildwest.api.availability.AvailabilityRepository;
 import com.wildwest.api.destination.Destination;
 import com.wildwest.api.destination.DestinationRepository;
 import com.wildwest.api.tour.*;
 import com.wildwest.api.travelstyle.TravelStyle;
 import com.wildwest.api.travelstyle.TravelStyleRepository;
-import com.wildwest.api.availability.Availability;
-import com.wildwest.api.availability.AvailabilityDto;
-import com.wildwest.api.availability.AvailabilityRepository;
-
+import java.text.Normalizer;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.text.Normalizer;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.time.LocalDate;
 
 @Service
 @Transactional
@@ -37,8 +35,7 @@ public class AdminTourService {
             TourRepository tourRepository,
             DestinationRepository destinationRepository,
             TravelStyleRepository travelStyleRepository,
-            AvailabilityRepository availabilityRepository
-    ) {
+            AvailabilityRepository availabilityRepository) {
         this.tourRepository = tourRepository;
         this.destinationRepository = destinationRepository;
         this.travelStyleRepository = travelStyleRepository;
@@ -47,9 +44,11 @@ public class AdminTourService {
 
     @Transactional(readOnly = true)
     public List<TourAdminSummary> list() {
-        return tourRepository.findAll(
-                org.springframework.data.domain.Sort.by("displayOrder").ascending()
-        ).stream().map(this::toSummary).toList();
+        return tourRepository
+                .findAll(org.springframework.data.domain.Sort.by("displayOrder").ascending())
+                .stream()
+                .map(this::toSummary)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -58,13 +57,10 @@ public class AdminTourService {
     }
 
     public TourAdminDetail create(TourWriteRequest req) {
-        String slug = (req.slug() != null && !req.slug().isBlank())
-                ? slugify(req.slug())
-                : slugify(req.title());
+        String slug = (req.slug() != null && !req.slug().isBlank()) ? slugify(req.slug()) : slugify(req.title());
 
         if (tourRepository.findBySlug(slug).isPresent()) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "A tour with slug '" + slug + "' already exists");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A tour with slug '" + slug + "' already exists");
         }
 
         Tour tour = new Tour();
@@ -77,14 +73,11 @@ public class AdminTourService {
     public TourAdminDetail update(String slug, TourWriteRequest req) {
         Tour tour = loadTour(slug);
 
-        String newSlug = (req.slug() != null && !req.slug().isBlank())
-                ? slugify(req.slug())
-                : slugify(req.title());
+        String newSlug = (req.slug() != null && !req.slug().isBlank()) ? slugify(req.slug()) : slugify(req.title());
 
         if (!newSlug.equals(tour.getSlug())) {
             if (tourRepository.findBySlug(newSlug).isPresent()) {
-                throw new ResponseStatusException(
-                        HttpStatus.CONFLICT, "Slug '" + newSlug + "' is already used");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Slug '" + newSlug + "' is already used");
             }
             tour.setSlug(newSlug);
         }
@@ -100,13 +93,14 @@ public class AdminTourService {
     }
 
     private Tour loadTour(String slug) {
-        return tourRepository.findBySlug(slug)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Tour not found: " + slug));
+        return tourRepository
+                .findBySlug(slug)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found: " + slug));
     }
 
     private void applyWritableFields(Tour tour, TourWriteRequest req) {
-        Destination destination = destinationRepository.findBySlug(req.destinationSlug())
+        Destination destination = destinationRepository
+                .findBySlug(req.destinationSlug())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.BAD_REQUEST, "Unknown destination: " + req.destinationSlug()));
 
@@ -127,9 +121,9 @@ public class AdminTourService {
         Set<TravelStyle> styles = new HashSet<>();
         if (req.styleSlugs() != null) {
             for (String s : req.styleSlugs()) {
-                TravelStyle style = travelStyleRepository.findBySlug(s)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.BAD_REQUEST, "Unknown style: " + s));
+                TravelStyle style = travelStyleRepository
+                        .findBySlug(s)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown style: " + s));
                 styles.add(style);
             }
         }
@@ -182,19 +176,14 @@ public class AdminTourService {
                 t.getPriceCents(),
                 t.getCurrency(),
                 Boolean.TRUE.equals(t.getFeatured()),
-                t.getDisplayOrder()
-        );
+                t.getDisplayOrder());
     }
 
     private TourAdminDetail toDetail(Tour t) {
         List<ItineraryDayInput> itinerary = t.getItineraryDays().stream()
                 .sorted(Comparator.comparing(TourItineraryDay::getDayNumber))
                 .map(d -> new ItineraryDayInput(
-                        d.getDayNumber(),
-                        d.getTitle(),
-                        d.getDescription(),
-                        d.getAccommodation(),
-                        d.getMealsIncluded()))
+                        d.getDayNumber(), d.getTitle(), d.getDescription(), d.getAccommodation(), d.getMealsIncluded()))
                 .collect(Collectors.toList());
 
         List<String> inclusions = t.getInclusions().stream()
@@ -202,10 +191,8 @@ public class AdminTourService {
                 .map(TourInclusion::getLabel)
                 .toList();
 
-        List<String> styleSlugs = t.getStyles().stream()
-                .map(TravelStyle::getSlug)
-                .sorted()
-                .toList();
+        List<String> styleSlugs =
+                t.getStyles().stream().map(TravelStyle::getSlug).sorted().toList();
 
         return new TourAdminDetail(
                 t.getSlug(),
@@ -224,14 +211,14 @@ public class AdminTourService {
                 styleSlugs,
                 itinerary,
                 inclusions,
-                t.getTourType() 
-        );
+                t.getTourType());
     }
 
     private static String slugify(String input) {
-        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD)
-                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-        return normalized.toLowerCase()
+        String normalized =
+                Normalizer.normalize(input, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        return normalized
+                .toLowerCase()
                 .replaceAll("[^a-z0-9]+", "-")
                 .replaceAll("^-+|-+$", "")
                 .replaceAll("-{2,}", "-");
@@ -246,8 +233,7 @@ public class AdminTourService {
     @Transactional(readOnly = true)
     public List<AvailabilityDto> listAvailability(String slug) {
         loadTour(slug); // 404 for an unknown tour instead of an empty list
-        return availabilityRepository.findByTourSlugOrderByDepartureDateAsc(slug)
-                .stream()
+        return availabilityRepository.findByTourSlugOrderByDepartureDateAsc(slug).stream()
                 .map(AvailabilityDto::from)
                 .toList();
     }
@@ -257,11 +243,10 @@ public class AdminTourService {
         LocalDate date = req.date();
         Integer capacity = req.capacity();
 
-        boolean exists = availabilityRepository.findByTourSlugOrderByDepartureDateAsc(slug)
-                .stream().anyMatch(a -> a.getDepartureDate().equals(date));
+        boolean exists = availabilityRepository.findByTourSlugOrderByDepartureDateAsc(slug).stream()
+                .anyMatch(a -> a.getDepartureDate().equals(date));
         if (exists) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "This tour already has a departure on " + date);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "This tour already has a departure on " + date);
         }
 
         Availability av = new Availability();
@@ -277,7 +262,8 @@ public class AdminTourService {
     }
 
     public void deleteAvailability(UUID id) {
-        Availability av = availabilityRepository.findById(id)
+        Availability av = availabilityRepository
+                .findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Date not found"));
 
         if (av.getBooked() > 0) {

@@ -18,6 +18,7 @@ public interface PaymentProvider {
         public static InitResult stripe(String clientSecret) {
             return new InitResult("STRIPE", null, clientSecret, null);
         }
+
         public static InitResult paystack(String reference, String accessCode) {
             return new InitResult("PAYSTACK", reference, null, accessCode);
         }

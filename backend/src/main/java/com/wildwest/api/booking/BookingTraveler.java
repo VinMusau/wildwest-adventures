@@ -11,7 +11,10 @@ import lombok.Setter;
 @Table(name = "booking_travelers")
 public class BookingTraveler extends BaseEntity {
 
-    public enum Type { ADULT, CHILD }
+    public enum Type {
+        ADULT,
+        CHILD
+    }
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "booking_id", nullable = false)

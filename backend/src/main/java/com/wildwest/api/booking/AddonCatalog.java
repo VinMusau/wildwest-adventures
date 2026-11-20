@@ -11,8 +11,8 @@ public final class AddonCatalog {
 
     static {
         register("airport-transfer", "Private airport transfer", 18000);
-        register("travel-cover",     "Comprehensive travel cover", 32000);
-        register("balloon-safari",   "Hot-air balloon safari", 62000);
+        register("travel-cover", "Comprehensive travel cover", 32000);
+        register("balloon-safari", "Hot-air balloon safari", 62000);
     }
 
     private static void register(String code, String label, int priceCents) {

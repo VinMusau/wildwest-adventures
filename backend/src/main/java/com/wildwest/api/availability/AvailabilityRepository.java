@@ -1,16 +1,15 @@
 package com.wildwest.api.availability;
 
 import jakarta.persistence.LockModeType;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 public interface AvailabilityRepository extends JpaRepository<Availability, UUID> {
 
@@ -29,8 +28,7 @@ public interface AvailabilityRepository extends JpaRepository<Availability, UUID
             @Param("tourId") UUID tourId,
             @Param("date") LocalDate date,
             @Param("capacity") int capacity,
-            @Param("currency") String currency
-    );
+            @Param("currency") String currency);
 
     @Query("""
         select a from Availability a
@@ -41,10 +39,7 @@ public interface AvailabilityRepository extends JpaRepository<Availability, UUID
         order by a.departureDate asc
         """)
     List<Availability> findOpenForTourBetween(
-            @Param("slug") String slug,
-            @Param("from") LocalDate from,
-            @Param("to") LocalDate to
-    );
+            @Param("slug") String slug, @Param("from") LocalDate from, @Param("to") LocalDate to);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
@@ -52,10 +47,7 @@ public interface AvailabilityRepository extends JpaRepository<Availability, UUID
         where a.tour.slug = :slug
           and a.departureDate = :date
         """)
-    Optional<Availability> lockForUpdate(
-            @Param("slug") String slug,
-            @Param("date") LocalDate date
-    );
+    Optional<Availability> lockForUpdate(@Param("slug") String slug, @Param("date") LocalDate date);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select a from Availability a where a.id = :id")

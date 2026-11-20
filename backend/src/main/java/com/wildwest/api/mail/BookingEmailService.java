@@ -3,6 +3,12 @@ package com.wildwest.api.mail;
 import com.wildwest.api.booking.Booking;
 import com.wildwest.api.booking.BookingEvents;
 import com.wildwest.api.booking.BookingRepository;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Currency;
+import java.util.Locale;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -14,13 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.time.format.DateTimeFormatter;
-import java.util.Currency;
-import java.util.Locale;
-import java.util.UUID;
 
 /**
  * Emails the booking's lead traveler when a booking is confirmed or cancelled.
@@ -48,8 +47,7 @@ public class BookingEmailService {
             ObjectProvider<JavaMailSender> mailSender,
             @Value("${wildwest.mail.enabled:false}") boolean enabled,
             @Value("${wildwest.mail.from:}") String from,
-            @Value("${wildwest.app-url:http://localhost:5173}") String appUrl
-    ) {
+            @Value("${wildwest.app-url:http://localhost:5173}") String appUrl) {
         this.bookingRepository = bookingRepository;
         this.mailSender = mailSender;
         this.enabled = enabled;
@@ -61,9 +59,10 @@ public class BookingEmailService {
     @TransactionalEventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void onConfirmed(BookingEvents.Confirmed event) {
-        send(event.bookingId(), b -> new Email(
-                "Booking confirmed: " + b.getTour().getTitle() + " (" + b.getReference() + ")",
-                """
+        send(
+                event.bookingId(),
+                b -> new Email(
+                        "Booking confirmed: " + b.getTour().getTitle() + " (" + b.getReference() + ")", """
                 Hi %s,
 
                 Your booking is confirmed. We can't wait to travel with you.
@@ -78,17 +77,23 @@ public class BookingEmailService {
 
                 Wild West Adventures
                 """.formatted(
-                        b.getLeadFirstName(), b.getTour().getTitle(), DATE.format(b.getDepartureDate()),
-                        b.getTravelersCount(), money(b.getTotalCents(), b.getCurrency()), b.getReference(), appUrl)));
+                                        b.getLeadFirstName(),
+                                        b.getTour().getTitle(),
+                                        DATE.format(b.getDepartureDate()),
+                                        b.getTravelersCount(),
+                                        money(b.getTotalCents(), b.getCurrency()),
+                                        b.getReference(),
+                                        appUrl)));
     }
 
     @Async
     @TransactionalEventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void onCancelled(BookingEvents.Cancelled event) {
-        send(event.bookingId(), b -> new Email(
-                "Booking cancelled: " + b.getTour().getTitle() + " (" + b.getReference() + ")",
-                """
+        send(
+                event.bookingId(),
+                b -> new Email(
+                        "Booking cancelled: " + b.getTour().getTitle() + " (" + b.getReference() + ")", """
                 Hi %s,
 
                 Your booking %s for %s, departing %s, has been cancelled.%s
@@ -97,12 +102,14 @@ public class BookingEmailService {
 
                 Wild West Adventures
                 """.formatted(
-                        b.getLeadFirstName(), b.getReference(), b.getTour().getTitle(),
-                        DATE.format(b.getDepartureDate()),
-                        b.getCancelReason() != null ? "\n\nReason: " + b.getCancelReason() : "",
-                        b.getPaidAt() != null && b.getRefundedAt() == null
-                                ? "\nAs you'd already paid, we'll refund you and email again when it's on its way.\n"
-                                : "")));
+                                        b.getLeadFirstName(),
+                                        b.getReference(),
+                                        b.getTour().getTitle(),
+                                        DATE.format(b.getDepartureDate()),
+                                        b.getCancelReason() != null ? "\n\nReason: " + b.getCancelReason() : "",
+                                        b.getPaidAt() != null && b.getRefundedAt() == null
+                                                ? "\nAs you'd already paid, we'll refund you and email again when it's on its way.\n"
+                                                : "")));
     }
 
     private record Email(String subject, String body) {}

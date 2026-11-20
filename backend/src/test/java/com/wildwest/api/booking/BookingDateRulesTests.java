@@ -1,5 +1,8 @@
 package com.wildwest.api.booking;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityRepository;
 import com.wildwest.api.booking.BookingDtos.BookingDto;
@@ -11,6 +14,11 @@ import com.wildwest.api.tour.TourRepository;
 import com.wildwest.api.user.User;
 import com.wildwest.api.user.UserRepository;
 import com.wildwest.api.user.UserRole;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,26 +26,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 @SpringBootTest
 class BookingDateRulesTests {
 
     private static final String SCHEDULED_TOUR = "torres-del-paine";
     private static final String ON_REQUEST_TOUR = "wild-road-south";
 
-    @Autowired BookingService bookingService;
-    @Autowired BookingRepository bookingRepository;
-    @Autowired AvailabilityRepository availabilityRepository;
-    @Autowired TourRepository tourRepository;
-    @Autowired UserRepository userRepository;
+    @Autowired
+    BookingService bookingService;
+
+    @Autowired
+    BookingRepository bookingRepository;
+
+    @Autowired
+    AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    TourRepository tourRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     private User user;
     private String originalTourType;
@@ -120,14 +128,17 @@ class BookingDateRulesTests {
         List<TravelerInput> people = IntStream.range(0, travelers)
                 .mapToObj(i -> new TravelerInput("Traveler" + i, "Test", "ADULT"))
                 .toList();
-        return bookingService.create(user, new CreateBookingRequest(
-                tour, date, people, new LeadInput("Lead", "Test", "lead@example.test", null, null), null));
+        return bookingService.create(
+                user,
+                new CreateBookingRequest(
+                        tour, date, people, new LeadInput("Lead", "Test", "lead@example.test", null, null), null));
     }
 
     private Availability departureOn(LocalDate date) {
         return availabilityRepository.findByTourSlugOrderByDepartureDateAsc(ON_REQUEST_TOUR).stream()
                 .filter(a -> a.getDepartureDate().equals(date))
-                .findFirst().orElseThrow();
+                .findFirst()
+                .orElseThrow();
     }
 
     private void trackDeparture(LocalDate date) {

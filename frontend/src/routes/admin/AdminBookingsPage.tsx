@@ -31,8 +31,16 @@ const STATUS_OPTIONS: Array<{ value: "" | BookingStatus; label: string }> = [
  * Paid, but the payment arrived after the booking was cancelled or its hold expired
  * and the departure was full, so it couldn't be confirmed. The money needs to go back.
  */
-function needsRefund(b: { status: BookingStatus; paidAt: string | null; refundedAt: string | null }) {
-  return (b.status === "CANCELLED" || b.status === "EXPIRED") && !!b.paidAt && !b.refundedAt;
+function needsRefund(b: {
+  status: BookingStatus;
+  paidAt: string | null;
+  refundedAt: string | null;
+}) {
+  return (
+    (b.status === "CANCELLED" || b.status === "EXPIRED") &&
+    !!b.paidAt &&
+    !b.refundedAt
+  );
 }
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
@@ -48,8 +56,6 @@ export default function AdminBookingsPage() {
 
   const { data, isLoading } = useAdminBookings(filters);
   const { data: tours = [] } = useTours();
-  const toast = useToast();
-  const confirmModal = useConfirm();
 
   const bookings = data?.content ?? [];
   const total = data?.totalElements ?? 0;
@@ -164,7 +170,9 @@ export default function AdminBookingsPage() {
                       {STATUS_LABEL[b.status]}
                     </span>
                     {needsRefund(b) && (
-                      <span className="status-badge status-needs-refund">Needs refund</span>
+                      <span className="status-badge status-needs-refund">
+                        Needs refund
+                      </span>
                     )}
                   </td>
                   <td className="admin-cell-actions">
