@@ -32,7 +32,7 @@ export default function ToursPage() {
       q: searchParams.get("q") ?? undefined,
       sort: searchParams.get("sort") ?? "recommended",
     }),
-    [searchParams]
+    [searchParams],
   );
 
   const setFilter = (key: keyof TourFilters, value?: string) => {

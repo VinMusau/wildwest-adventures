@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api";
-import type { AdminTourDetail, AdminTourSummary, TourWriteInput } from "@/types";
+import type {
+  AdminTourDetail,
+  AdminTourSummary,
+  TourWriteInput,
+} from "@/types";
 
 export function useAdminTours() {
   return useQuery({

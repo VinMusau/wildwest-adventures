@@ -13,9 +13,21 @@ export default function TourDetailSkeleton() {
 
       {/* Gallery */}
       <div className="gallery" style={{ marginTop: 24 }}>
-        <Skeleton style={{ width: "100%", height: "100%", borderRadius: "12px 0 0 12px" }} />
+        <Skeleton
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "12px 0 0 12px",
+          }}
+        />
         <Skeleton style={{ width: "100%", height: "100%", borderRadius: 0 }} />
-        <Skeleton style={{ width: "100%", height: "100%", borderRadius: "0 12px 12px 0" }} />
+        <Skeleton
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "0 12px 12px 0",
+          }}
+        />
       </div>
 
       {/* Main Content + Sidebar */}
@@ -27,9 +39,30 @@ export default function TourDetailSkeleton() {
           <Skeleton style={{ width: "60%", height: 16, marginBottom: 60 }} />
 
           <Skeleton style={{ width: 200, height: 32, marginBottom: 24 }} />
-          <Skeleton style={{ width: "100%", height: 100, marginBottom: 16, borderRadius: 8 }} />
-          <Skeleton style={{ width: "100%", height: 100, marginBottom: 16, borderRadius: 8 }} />
-          <Skeleton style={{ width: "100%", height: 100, marginBottom: 16, borderRadius: 8 }} />
+          <Skeleton
+            style={{
+              width: "100%",
+              height: 100,
+              marginBottom: 16,
+              borderRadius: 8,
+            }}
+          />
+          <Skeleton
+            style={{
+              width: "100%",
+              height: 100,
+              marginBottom: 16,
+              borderRadius: 8,
+            }}
+          />
+          <Skeleton
+            style={{
+              width: "100%",
+              height: 100,
+              marginBottom: 16,
+              borderRadius: 8,
+            }}
+          />
         </div>
 
         {/* Sticky Booking Card Skeleton */}

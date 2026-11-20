@@ -21,8 +21,9 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const update = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm({ ...form, [key]: e.target.value });
+  const update =
+    (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm({ ...form, [key]: e.target.value });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,16 +60,32 @@ export default function RegisterPage() {
             <div className="auth-row">
               <label>
                 First name
-                <input value={form.firstName} onChange={update("firstName")} required autoComplete="given-name" />
+                <input
+                  value={form.firstName}
+                  onChange={update("firstName")}
+                  required
+                  autoComplete="given-name"
+                />
               </label>
               <label>
                 Last name
-                <input value={form.lastName} onChange={update("lastName")} required autoComplete="family-name" />
+                <input
+                  value={form.lastName}
+                  onChange={update("lastName")}
+                  required
+                  autoComplete="family-name"
+                />
               </label>
             </div>
             <label>
               Email
-              <input type="email" value={form.email} onChange={update("email")} required autoComplete="email" />
+              <input
+                type="email"
+                value={form.email}
+                onChange={update("email")}
+                required
+                autoComplete="email"
+              />
             </label>
             <label>
               Password

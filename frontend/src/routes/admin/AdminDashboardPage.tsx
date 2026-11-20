@@ -31,11 +31,11 @@ export default function AdminDashboardPage() {
 
   const bookingsDelta = pctDelta(
     kpis.bookingsThisMonth,
-    kpis.bookingsLastMonth
+    kpis.bookingsLastMonth,
   );
   const revenueDelta = pctDelta(
     kpis.revenueThisMonthCents,
-    kpis.revenueLastMonthCents
+    kpis.revenueLastMonthCents,
   );
 
   const chartData = revenueSeries.map((p) => ({
@@ -69,7 +69,10 @@ export default function AdminDashboardPage() {
           value={formatPrice(kpis.revenueThisMonthCents, "USD")}
           delta={revenueDelta}
         />
-        <KpiCard label="Confirmed (all time)" value={kpis.confirmedTotal.toString()} />
+        <KpiCard
+          label="Confirmed (all time)"
+          value={kpis.confirmedTotal.toString()}
+        />
         <KpiCard label="Conversion rate" value={`${conversion}%`} />
       </div>
 
@@ -80,7 +83,10 @@ export default function AdminDashboardPage() {
         ) : (
           <div style={{ width: "100%", height: 280 }}>
             <ResponsiveContainer>
-              <LineChart data={chartData} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
+              <LineChart
+                data={chartData}
+                margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
+              >
                 <CartesianGrid stroke="#e8e1d6" vertical={false} />
                 <XAxis
                   dataKey="date"
@@ -137,11 +143,15 @@ export default function AdminDashboardPage() {
             <ul className="admin-list">
               {topTours.map((t) => (
                 <li key={t.slug}>
-                  <Link to={`/admin/tours/${t.slug}/edit`} className="admin-link">
+                  <Link
+                    to={`/admin/tours/${t.slug}/edit`}
+                    className="admin-link"
+                  >
                     {t.title}
                   </Link>
                   <small>
-                    {t.bookingsCount} bookings · {formatPrice(t.revenueCents, "USD")}
+                    {t.bookingsCount} bookings ·{" "}
+                    {formatPrice(t.revenueCents, "USD")}
                   </small>
                 </li>
               ))}
@@ -152,7 +162,11 @@ export default function AdminDashboardPage() {
         <section className="admin-form-section">
           <div className="admin-section-head">
             <h2>Recent bookings</h2>
-            <Link to="/admin/bookings" className="text-link" style={{ fontSize: 12 }}>
+            <Link
+              to="/admin/bookings"
+              className="text-link"
+              style={{ fontSize: 12 }}
+            >
               View all
             </Link>
           </div>
@@ -164,9 +178,13 @@ export default function AdminDashboardPage() {
                 <li key={b.reference}>
                   <div>
                     <span className="admin-mono">{b.reference}</span>
-                    <small>{b.customerName} · {b.tourTitle}</small>
+                    <small>
+                      {b.customerName} · {b.tourTitle}
+                    </small>
                   </div>
-                  <span className={`status-badge status-${b.status.toLowerCase()}`}>
+                  <span
+                    className={`status-badge status-${b.status.toLowerCase()}`}
+                  >
                     {STATUS_LABEL[b.status]}
                   </span>
                 </li>

@@ -12,7 +12,10 @@ interface PaymentFormProps {
   amountLabel: string;
 }
 
-export default function PaymentForm({ onSuccess, amountLabel }: PaymentFormProps) {
+export default function PaymentForm({
+  onSuccess,
+  amountLabel,
+}: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [busy, setBusy] = useState(false);

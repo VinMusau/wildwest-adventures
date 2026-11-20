@@ -18,9 +18,9 @@ const CONTENT = {
         </p>
         <h2>2. How We Use Your Information</h2>
         <p>
-          We use your information to process bookings, communicate with you about
-          your trip, and comply with legal requirements. We do not sell your
-          personal data to third parties.
+          We use your information to process bookings, communicate with you
+          about your trip, and comply with legal requirements. We do not sell
+          your personal data to third parties.
         </p>
         <h2>3. Payment Processing</h2>
         <p>
@@ -46,8 +46,8 @@ const CONTENT = {
         <p>
           A booking is only confirmed once a deposit or full payment has been
           received and cleared. Prices are quoted in USD and converted to KES at
-          the time of payment. We reserve the right to adjust prices in the event
-          of unforeseen currency fluctuations or supplier increases.
+          the time of payment. We reserve the right to adjust prices in the
+          event of unforeseen currency fluctuations or supplier increases.
         </p>
         <h2>2. Cancellations & Refunds</h2>
         <p>
@@ -65,8 +65,8 @@ const CONTENT = {
         <h2>4. Liability</h2>
         <p>
           Wild West Adventures acts as an agent for our suppliers (hotels,
-          airlines, ground operators). We are not liable for delays, injuries, or
-          losses caused by circumstances beyond our control (force majeure).
+          airlines, ground operators). We are not liable for delays, injuries,
+          or losses caused by circumstances beyond our control (force majeure).
         </p>
       </>
     ),
@@ -91,8 +91,8 @@ const CONTENT = {
         <h2>3. Managing Cookies</h2>
         <p>
           You can control or delete cookies through your browser settings.
-          However, disabling essential cookies may prevent you from logging in or
-          completing a booking.
+          However, disabling essential cookies may prevent you from logging in
+          or completing a booking.
         </p>
       </>
     ),
@@ -108,9 +108,14 @@ export default function LegalPage() {
     return (
       <main className="light-page">
         <Nav />
-        <div className="section" style={{ minHeight: "60vh", textAlign: "center" }}>
+        <div
+          className="section"
+          style={{ minHeight: "60vh", textAlign: "center" }}
+        >
           <h1>Page not found</h1>
-          <Link to="/" className="button primary" style={{ marginTop: 20 }}>Return home</Link>
+          <Link to="/" className="button primary" style={{ marginTop: 20 }}>
+            Return home
+          </Link>
         </div>
         <Footer />
       </main>
@@ -127,9 +132,7 @@ export default function LegalPage() {
         <span className="eyebrow">Legal</span>
         <h1>{content.title}</h1>
         <p className="legal-meta">Last updated: {content.updated}</p>
-        <div className="legal-body">
-          {content.body}
-        </div>
+        <div className="legal-body">{content.body}</div>
       </div>
       <Footer />
     </main>

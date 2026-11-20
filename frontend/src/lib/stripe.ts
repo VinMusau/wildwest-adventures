@@ -4,7 +4,7 @@ const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 if (!key) {
   console.warn(
-    "VITE_STRIPE_PUBLISHABLE_KEY is not set. Payment step will not work."
+    "VITE_STRIPE_PUBLISHABLE_KEY is not set. Payment step will not work.",
   );
 }
 

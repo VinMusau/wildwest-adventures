@@ -15,6 +15,7 @@ export interface RegisterInput {
 
 export const authApi = {
   login: (input: LoginInput) => apiPost<AuthResponse>("/v1/auth/login", input),
-  register: (input: RegisterInput) => apiPost<AuthResponse>("/v1/auth/register", input),
+  register: (input: RegisterInput) =>
+    apiPost<AuthResponse>("/v1/auth/register", input),
   me: () => apiGet<User>("/v1/auth/me"),
 };

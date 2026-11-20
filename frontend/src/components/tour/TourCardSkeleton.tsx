@@ -7,12 +7,22 @@ export default function TourCardSkeleton() {
         <Skeleton style={{ width: "100%", height: "100%", borderRadius: 0 }} />
       </div>
       <div className="tour-body">
-        <div className="eyebrow-row" style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+        <div
+          className="eyebrow-row"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: 16,
+          }}
+        >
           <Skeleton style={{ width: "40%", height: 10 }} />
           <Skeleton style={{ width: "20%", height: 10 }} />
         </div>
         <Skeleton style={{ width: "80%", height: 26, marginBottom: 20 }} />
-        <div className="tour-meta" style={{ borderTop: "none", borderBottom: "none", padding: 0 }}>
+        <div
+          className="tour-meta"
+          style={{ borderTop: "none", borderBottom: "none", padding: 0 }}
+        >
           <Skeleton style={{ width: "30%", height: 16 }} />
           <Skeleton style={{ width: "30%", height: 16 }} />
         </div>

@@ -7,8 +7,13 @@ interface ConfirmModalProps {
   onResolve: (value: string | boolean | null) => void;
 }
 
-export default function ConfirmModal({ options, onResolve }: ConfirmModalProps) {
-  const [inputValue, setInputValue] = useState(options.input?.defaultValue ?? "");
+export default function ConfirmModal({
+  options,
+  onResolve,
+}: ConfirmModalProps) {
+  const [inputValue, setInputValue] = useState(
+    options.input?.defaultValue ?? "",
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
 

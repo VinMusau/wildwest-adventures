@@ -37,7 +37,7 @@ export function useConfirmBooking(reference: string) {
     mutationFn: () =>
       apiPost<BookingAdminDetail>(
         `/v1/admin/bookings/${reference}/confirm`,
-        {}
+        {},
       ),
     onSuccess: (data) => {
       qc.setQueryData(["admin", "bookings", "detail", reference], data);
@@ -50,10 +50,9 @@ export function useCancelBooking(reference: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (reason?: string) =>
-      apiPost<BookingAdminDetail>(
-        `/v1/admin/bookings/${reference}/cancel`,
-        { reason: reason ?? null }
-      ),
+      apiPost<BookingAdminDetail>(`/v1/admin/bookings/${reference}/cancel`, {
+        reason: reason ?? null,
+      }),
     onSuccess: (data) => {
       qc.setQueryData(["admin", "bookings", "detail", reference], data);
       qc.invalidateQueries({ queryKey: ["admin", "bookings"] });
@@ -65,10 +64,9 @@ export function useRefundBooking(reference: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (amountCents?: number) =>
-      apiPost<BookingAdminDetail>(
-        `/v1/admin/bookings/${reference}/refund`,
-        { amountCents: amountCents ?? null }
-      ),
+      apiPost<BookingAdminDetail>(`/v1/admin/bookings/${reference}/refund`, {
+        amountCents: amountCents ?? null,
+      }),
     onSuccess: (data) => {
       qc.setQueryData(["admin", "bookings", "detail", reference], data);
       qc.invalidateQueries({ queryKey: ["admin", "bookings"] });

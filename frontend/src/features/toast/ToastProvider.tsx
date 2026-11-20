@@ -7,7 +7,11 @@ import type { Toast, ToastOptions, ToastType } from "./types";
 const DEFAULT_DURATION = 4000;
 const LEAVE_ANIMATION_MS = 220;
 
-export default function ToastProvider({ children }: { children: React.ReactNode }) {
+export default function ToastProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const timers = useRef<Record<string, number>>({});
 
@@ -19,7 +23,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
     }
 
     setToasts((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, leaving: true } : t))
+      prev.map((t) => (t.id === id ? { ...t, leaving: true } : t)),
     );
 
     // Remove after exit animation completes
@@ -43,11 +47,11 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
       if ((toast.duration ?? 0) > 0) {
         timers.current[id] = window.setTimeout(
           () => dismiss(id),
-          toast.duration
+          toast.duration,
         );
       }
     },
-    [dismiss]
+    [dismiss],
   );
 
   const value = useMemo(
@@ -60,7 +64,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
         push("info", title, options),
       dismiss,
     }),
-    [push, dismiss]
+    [push, dismiss],
   );
 
   return (
@@ -72,7 +76,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
             <ToastItem key={t.id} toast={t} onDismiss={() => dismiss(t.id)} />
           ))}
         </div>,
-        document.body
+        document.body,
       )}
     </ToastContext.Provider>
   );

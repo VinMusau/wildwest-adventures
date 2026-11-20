@@ -1,6 +1,12 @@
 import Skeleton from "@/components/ui/Skeleton";
 
-export default function AdminTableSkeleton({ rows = 6, cols = 5 }: { rows?: number; cols?: number }) {
+export default function AdminTableSkeleton({
+  rows = 6,
+  cols = 5,
+}: {
+  rows?: number;
+  cols?: number;
+}) {
   return (
     <div className="admin-table-wrap">
       <table className="admin-table">
@@ -18,7 +24,9 @@ export default function AdminTableSkeleton({ rows = 6, cols = 5 }: { rows?: numb
             <tr key={i}>
               {Array.from({ length: cols }).map((_, j) => (
                 <td key={j}>
-                  <Skeleton style={{ width: j === 0 ? "80%" : "60%", height: 16 }} />
+                  <Skeleton
+                    style={{ width: j === 0 ? "80%" : "60%", height: 16 }}
+                  />
                 </td>
               ))}
             </tr>

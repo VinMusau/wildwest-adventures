@@ -4,7 +4,11 @@ import ConfirmModal from "./ConfirmModal";
 import { ConfirmContext } from "./ConfirmContext";
 import type { ConfirmOptions } from "./types";
 
-export default function ConfirmProvider({ children }: { children: React.ReactNode }) {
+export default function ConfirmProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [state, setState] = useState<{
     options: ConfirmOptions;
     resolve: (val: any) => void;
@@ -21,7 +25,7 @@ export default function ConfirmProvider({ children }: { children: React.ReactNod
       state?.resolve(value);
       setState(null);
     },
-    [state]
+    [state],
   );
 
   const contextValue = useMemo(() => ({ confirm }), [confirm]);
@@ -31,11 +35,8 @@ export default function ConfirmProvider({ children }: { children: React.ReactNod
       {children}
       {state &&
         createPortal(
-          <ConfirmModal
-            options={state.options}
-            onResolve={handleResolve}
-          />,
-          document.body
+          <ConfirmModal options={state.options} onResolve={handleResolve} />,
+          document.body,
         )}
     </ConfirmContext.Provider>
   );

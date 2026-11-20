@@ -17,10 +17,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(
-  path: string,
-  init: RequestInit = {}
-): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = tokenStorage.get();
   const headers: Record<string, string> = {
     Accept: "application/json",
@@ -28,7 +25,11 @@ async function request<T>(
   };
   // FormData bodies must not get an explicit Content-Type: the browser sets
   // multipart/form-data with the correct boundary itself.
-  if (init.body && !(init.body instanceof FormData) && !headers["Content-Type"]) {
+  if (
+    init.body &&
+    !(init.body instanceof FormData) &&
+    !headers["Content-Type"]
+  ) {
     headers["Content-Type"] = "application/json";
   }
   if (token) {
@@ -41,14 +42,18 @@ async function request<T>(
   // wrong password at login) it falls through and shows the server's message.
   if (res.status === 401 && token) {
     if (!isHandling401) {
-      isHandling401 = true
+      isHandling401 = true;
       tokenStorage.clear();
 
       const isInitialCheck = path.includes("/auth/me");
       window.dispatchEvent(
-        new CustomEvent(AUTH_EXPIRED_EVENT, { detail: { silent: isInitialCheck } })
+        new CustomEvent(AUTH_EXPIRED_EVENT, {
+          detail: { silent: isInitialCheck },
+        }),
       );
-      setTimeout(() => { isHandling401 = false }, 3000);
+      setTimeout(() => {
+        isHandling401 = false;
+      }, 3000);
     }
     throw new ApiError({ status: 401, message: "Session expired" });
   }

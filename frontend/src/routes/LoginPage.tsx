@@ -29,7 +29,9 @@ export default function LoginPage() {
       toast.success(`Welcome back, ${user.firstName}`, {
         description: "Your journeys are waiting.",
       });
-      navigate(from ?? (user.role === "ADMIN" ? "/admin" : "/"), { replace: true });
+      navigate(from ?? (user.role === "ADMIN" ? "/admin" : "/"), {
+        replace: true,
+      });
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : "Something went wrong";
