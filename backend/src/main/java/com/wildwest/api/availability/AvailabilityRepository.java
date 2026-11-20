@@ -15,7 +15,8 @@ public interface AvailabilityRepository extends JpaRepository<Availability, UUID
 
     @Query("""
         select a from Availability a
-        where a.tour.slug = :slug
+        join fetch a.tour t
+        where t.slug = :slug
           and a.departureDate between :from and :to
           and a.status = 'OPEN'
         order by a.departureDate asc

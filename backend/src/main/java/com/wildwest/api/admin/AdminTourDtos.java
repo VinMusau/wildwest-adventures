@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public final class AdminTourDtos {
@@ -33,9 +34,14 @@ public final class AdminTourDtos {
             @NotNull Boolean featured,
             @NotNull @Min(0) Integer displayOrder,
             List<String> styleSlugs,
-            @Valid List<ItineraryDayInput> itinerary,
+            List<@Valid ItineraryDayInput> itinerary,
             List<String> inclusions,
             String tourType
+    ) {}
+
+    public record AvailabilityWriteRequest(
+            @NotNull @FutureOrPresent LocalDate date,
+            @NotNull @Min(1) Integer capacity
     ) {}
 
     public record TourAdminSummary(

@@ -1,5 +1,6 @@
 package com.wildwest.api.admin;
 
+import com.wildwest.api.admin.AdminTourDtos.AvailabilityWriteRequest;
 import com.wildwest.api.admin.AdminTourDtos.ItineraryDayInput;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminDetail;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminSummary;
@@ -10,6 +11,7 @@ import com.wildwest.api.tour.*;
 import com.wildwest.api.travelstyle.TravelStyle;
 import com.wildwest.api.travelstyle.TravelStyleRepository;
 import com.wildwest.api.availability.Availability;
+import com.wildwest.api.availability.AvailabilityDto;
 import com.wildwest.api.availability.AvailabilityRepository;
 
 import org.springframework.http.HttpStatus;
@@ -135,6 +137,14 @@ public class AdminTourService {
         tour.getStyles().addAll(styles);
 
         tour.getItineraryDays().clear();
+        tour.getInclusions().clear();
+        if (tour.getId() != null) {
+            // Hibernate runs inserts before orphan deletes when it flushes. Without this flush,
+            // re-adding an existing day number violates UNIQUE (tour_id, day_number), so saving
+            // a tour without changing its itinerary failed.
+            tourRepository.flush();
+        }
+
         if (req.itinerary() != null) {
             for (ItineraryDayInput day : req.itinerary()) {
                 TourItineraryDay entity = new TourItineraryDay();
@@ -148,7 +158,6 @@ public class AdminTourService {
             }
         }
 
-        tour.getInclusions().clear();
         if (req.inclusions() != null) {
             int order = 1;
             for (String label : req.inclusions()) {
@@ -234,14 +243,25 @@ public class AdminTourService {
         return t.isEmpty() ? null : t;
     }
 
-    public Availability addAvailability(String slug, LocalDate date, Integer capacity) {
-        Tour tour = loadTour(slug);
+    @Transactional(readOnly = true)
+    public List<AvailabilityDto> listAvailability(String slug) {
+        loadTour(slug); // 404 for an unknown tour instead of an empty list
+        return availabilityRepository.findByTourSlugOrderByDepartureDateAsc(slug)
+                .stream()
+                .map(AvailabilityDto::from)
+                .toList();
+    }
 
-        // Check if date already exists
+    public AvailabilityDto addAvailability(String slug, AvailabilityWriteRequest req) {
+        Tour tour = loadTour(slug);
+        LocalDate date = req.date();
+        Integer capacity = req.capacity();
+
         boolean exists = availabilityRepository.findByTourSlugOrderByDepartureDateAsc(slug)
                 .stream().anyMatch(a -> a.getDepartureDate().equals(date));
         if (exists) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Date already exists");
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "This tour already has a departure on " + date);
         }
 
         Availability av = new Availability();
@@ -253,7 +273,7 @@ public class AdminTourService {
         av.setCurrency(tour.getCurrency());
         // priceCents is null, so it falls back to the Tour's price
 
-        return availabilityRepository.save(av);
+        return AvailabilityDto.from(availabilityRepository.save(av));
     }
 
     public void deleteAvailability(UUID id) {

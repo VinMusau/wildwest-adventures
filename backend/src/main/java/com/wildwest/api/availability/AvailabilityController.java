@@ -7,10 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/tours/{slug}/availability")
@@ -20,30 +18,6 @@ public class AvailabilityController {
 
     public AvailabilityController(AvailabilityRepository repository) {
         this.repository = repository;
-    }
-
-    public record AvailabilityDto(
-            UUID id,
-            LocalDate date,
-            int capacity,
-            int booked,
-            int remaining,
-            int priceCents,
-            String currency,
-            String status
-    ) {
-        static AvailabilityDto from(Availability a) {
-            return new AvailabilityDto(
-                    a.getId(),
-                    a.getDepartureDate(),
-                    a.getCapacity(),
-                    a.getBooked(),
-                    a.remaining(),
-                    a.effectivePriceCents(),
-                    a.getCurrency(),
-                    a.getStatus()
-            );
-        }
     }
 
     @GetMapping

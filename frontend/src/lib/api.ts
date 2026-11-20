@@ -35,7 +35,9 @@ async function request<T>(
 
   const res = await fetch(`${BASE}${path}`, { ...init, headers });
 
-  if (res.status === 401) {
+  // A 401 means the session expired only if we sent a token. Without one (e.g. a
+  // wrong password at login) it falls through and shows the server's message.
+  if (res.status === 401 && token) {
     if (!isHandling401) {
       isHandling401 = true
       tokenStorage.clear();
