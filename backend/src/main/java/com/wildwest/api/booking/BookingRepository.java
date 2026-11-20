@@ -22,6 +22,9 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
     @EntityGraph(attributePaths = {"tour", "tour.destination"})
     List<Booking> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
+    /** Unpaid bookings whose seat hold is still running. */
+    long countByUserIdAndStatusAndExpiresAtAfter(UUID userId, Booking.Status status, Instant now);
+
     @Modifying
     @Query("""
         update Booking b
