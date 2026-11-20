@@ -27,6 +27,14 @@ const STATUS_OPTIONS: Array<{ value: "" | BookingStatus; label: string }> = [
   { value: "EXPIRED", label: "Expired" },
 ];
 
+/**
+ * Paid, but the payment arrived after the booking was cancelled or its hold expired
+ * and the departure was full, so it couldn't be confirmed. The money needs to go back.
+ */
+function needsRefund(b: { status: BookingStatus; paidAt: string | null; refundedAt: string | null }) {
+  return (b.status === "CANCELLED" || b.status === "EXPIRED") && !!b.paidAt && !b.refundedAt;
+}
+
 const STATUS_LABEL: Record<BookingStatus, string> = {
   PENDING: "Pending",
   CONFIRMED: "Confirmed",
@@ -155,6 +163,9 @@ export default function AdminBookingsPage() {
                     >
                       {STATUS_LABEL[b.status]}
                     </span>
+                    {needsRefund(b) && (
+                      <span className="status-badge status-needs-refund">Needs refund</span>
+                    )}
                   </td>
                   <td className="admin-cell-actions">
                     <button
@@ -451,6 +462,9 @@ function BookingSummaryBlock({ booking }: { booking: BookingAdminDetail }) {
         <span className={`status-badge status-${booking.status.toLowerCase()}`}>
           {STATUS_LABEL[booking.status]}
         </span>
+        {needsRefund(booking) && (
+          <span className="status-badge status-needs-refund">Needs refund</span>
+        )}
       </div>
     </div>
   );

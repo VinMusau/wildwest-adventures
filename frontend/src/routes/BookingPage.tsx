@@ -125,6 +125,25 @@ export default function BookingPage() {
     return true;
   })();
 
+  const startPayment = (reference: string) => {
+    setError(null);
+    paymentInit.mutate(reference, {
+      onSuccess: (data) => setPaymentData(data),
+      onError: (err) => {
+        if (err instanceof ApiError && err.status === 409) {
+          // The hold expired (or the booking is no longer pending): its seats were
+          // released, so the next click reserves afresh.
+          setPendingBooking(null);
+          setError("Your hold on these places expired. Reserve again to get a new 20-minute hold.");
+          toast.error("Your hold expired", { description: "Please reserve again." });
+          return;
+        }
+        toast.error("Payment initialization failed", { description: err.message });
+        setError(err instanceof ApiError ? err.message : "Could not start payment");
+      },
+    });
+  };
+
   const next = () => {
     setError(null);
 
@@ -134,7 +153,11 @@ export default function BookingPage() {
     }
 
     if (!draft.departureDate || !tour) return;
-    if (pendingBooking) return;
+    if (pendingBooking) {
+      // The booking exists but payment didn't start: retry on the same booking.
+      if (!paymentData) startPayment(pendingBooking.reference);
+      return;
+    }
 
     createBooking.mutate(
       {
@@ -147,15 +170,7 @@ export default function BookingPage() {
       {
         onSuccess: (booking) => {
           setPendingBooking(booking);
-          paymentInit.mutate(booking.reference, {
-            onSuccess: (data) => setPaymentData(data),
-            onError: (err) => {
-              toast.error("Payment initialization failed", { description: err.message });
-              setError(
-                err instanceof ApiError ? err.message : "Could not start payment"
-              );
-            },
-          });
+          startPayment(booking.reference);
         },
         onError: (err) => {
           toast.error("Booking creation failed", { description: err.message });
@@ -478,7 +493,19 @@ export default function BookingPage() {
               )}
 
               {pendingBooking && !paymentData && (
-                <p className="text-muted">Preparing secure payment…</p>
+                paymentInit.isPending || !error ? (
+                  <p className="text-muted">Preparing secure payment…</p>
+                ) : (
+                  <>
+                    <p>
+                      Your place is reserved (reference {pendingBooking.reference}), but we
+                      couldn't start the payment.
+                    </p>
+                    <p className="form-error" style={{ marginTop: 16 }}>
+                      {error}
+                    </p>
+                  </>
+                )
               )}
 
               {pendingBooking &&
@@ -555,7 +582,9 @@ export default function BookingPage() {
                 {step === 4
                   ? createBooking.isPending || paymentInit.isPending
                     ? "Reserving…"
-                    : "Reserve my place"
+                    : pendingBooking
+                      ? "Try payment again"
+                      : "Reserve my place"
                   : "Continue"}{" "}
                 <Icon name="arrow" />
               </Button>
