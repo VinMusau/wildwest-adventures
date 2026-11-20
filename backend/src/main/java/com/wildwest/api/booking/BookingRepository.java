@@ -22,24 +22,31 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
     @EntityGraph(attributePaths = {"tour", "tour.destination"})
     List<Booking> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
-    @Modifying
+    /** Pending bookings whose seat hold has run out. */
+    @Query("""
+        select b.id from Booking b
+        where b.status = 'PENDING'
+        and b.expiresAt is not null
+        and b.expiresAt < :now
+        """)
+    List<UUID> findExpiredPendingIds(@Param("now") Instant now);
+
+    /**
+     * Marks one booking EXPIRED, but only if it is still PENDING with a lapsed hold.
+     * Returns 1 if it changed. The status check makes this safe against a payment
+     * confirming the booking at the same moment: only one of the two can win.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""
         update Booking b
         set b.status = 'EXPIRED',
             b.updatedAt = current_timestamp
-        where b.status = 'PENDING'
+        where b.id = :id
+        and b.status = 'PENDING'
         and b.expiresAt is not null
         and b.expiresAt < :now
         """)
-    int expirePendingOlderThan(@Param("now") Instant now);
-
-    @Query("""
-        select b from Booking b
-        where b.status = 'PENDING'
-        and b.expiresAt is not null
-        and b.expiresAt < :now
-        """)
-    List<Booking> findExpiredPending(@Param("now") Instant now);
+    int expireIfPending(@Param("id") UUID id, @Param("now") Instant now);
 
     Optional<Booking> findByStripePaymentIntentId(String paymentIntentId);
     
