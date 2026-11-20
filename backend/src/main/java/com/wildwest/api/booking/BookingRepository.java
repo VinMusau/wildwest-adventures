@@ -45,6 +45,28 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
     
     Optional<Booking> findByPaystackReference(String paystackReference);
 
+    /**
+     * Confirms a booking only if it is still in the given status. Returns 1 if it changed.
+     * Conditional so that a payment and the hold-expiry job can't both win.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+        update Booking b
+        set b.status = 'CONFIRMED',
+            b.paidAt = :paidAt,
+            b.paymentMethod = :method,
+            b.expiresAt = null,
+            b.updatedAt = current_timestamp
+        where b.id = :id
+        and b.status = :expected
+        """)
+    int confirmIfStatus(
+            @Param("id") UUID id,
+            @Param("expected") Booking.Status expected,
+            @Param("paidAt") Instant paidAt,
+            @Param("method") String method
+    );
+
     @Query(value = """
     SELECT COUNT(*) FROM bookings
     WHERE created_at >= :from AND created_at < :to

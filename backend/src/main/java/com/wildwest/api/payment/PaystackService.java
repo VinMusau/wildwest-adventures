@@ -1,6 +1,7 @@
 package com.wildwest.api.payment;
 
 import com.wildwest.api.booking.Booking;
+import com.wildwest.api.booking.BookingPaymentService;
 import com.wildwest.api.booking.BookingRepository;
 import com.wildwest.api.user.User;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ public class PaystackService implements PaymentProvider {
 
     private static final String PAYSTACK_BASE = "https://api.paystack.co";
 
+    private final BookingPaymentService paymentService;
     private final BookingRepository bookingRepository;
     private final RestClient restClient;
     private final String chargeCurrency;
@@ -28,11 +30,13 @@ public class PaystackService implements PaymentProvider {
 
     public PaystackService(
             BookingRepository bookingRepository,
+            BookingPaymentService paymentService,
             @Value("${wildwest.paystack.secret-key:}") String secretKey,
             @Value("${wildwest.paystack.currency:KES}") String chargeCurrency,
             @Value("${wildwest.paystack.usd-to-kes-rate:128.0}") double usdToKesRate
     ) {
         this.bookingRepository = bookingRepository;
+        this.paymentService = paymentService;
         this.chargeCurrency = chargeCurrency.toUpperCase();
         this.usdToKesRate = usdToKesRate;
         this.restClient = RestClient.builder()
@@ -165,18 +169,12 @@ public class PaystackService implements PaymentProvider {
             return false;
         }
 
-        bookingRepository.findByPaystackReference(paystackReference).ifPresent(booking -> {
-            if (booking.getStatus() == Booking.Status.CONFIRMED) {
-                return;   // idempotent
-            }
-            booking.setStatus(Booking.Status.CONFIRMED);
-            booking.setPaidAt(Instant.now());
-            booking.setPaymentMethod("PAYSTACK");
-            bookingRepository.save(booking);
-            log.info("Booking {} confirmed via verify endpoint", booking.getReference());
-        });
-
-        return true;
+        // true only if the booking ends up confirmed; a paid-but-unconfirmable booking
+        // (cancelled, or expired and full) is flagged for a refund instead.
+        return bookingRepository.findByPaystackReference(paystackReference)
+                .map(booking -> paymentService.recordSuccessfulPayment(booking.getId(), "PAYSTACK"))
+                .map(outcome -> outcome != BookingPaymentService.Outcome.PAID_NEEDS_REFUND)
+                .orElse(false);
     }
 
     /**
