@@ -20,7 +20,6 @@ import java.util.List;
 public class BookingService {
 
     private static final int HOLD_MINUTES = 20;
-    private static final int MAX_ACTIVE_HOLDS_PER_USER = 3;
 
     private final BookingRepository bookingRepository;
     private final AvailabilityRepository availabilityRepository;
@@ -35,6 +34,9 @@ public class BookingService {
         this.availabilityRepository = availabilityRepository;
         this.tourRepository = tourRepository;
     }
+
+    /** How many unpaid bookings (seat holds) one customer may have at once. */
+    private static final int MAX_ACTIVE_HOLDS_PER_USER = 3;
 
     @Transactional
     public BookingDto create(User user, CreateBookingRequest request) {

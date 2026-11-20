@@ -16,14 +16,14 @@ public interface BookingRepository extends JpaRepository<Booking, UUID>, JpaSpec
 
     boolean existsByReference(String reference);
 
+    /** Unpaid bookings whose seat hold is still running. */
+    long countByUserIdAndStatusAndExpiresAtAfter(UUID userId, Booking.Status status, Instant now);
+
     @EntityGraph(attributePaths = {"tour", "tour.destination", "availability"})
     Optional<Booking> findByReference(String reference);
 
     @EntityGraph(attributePaths = {"tour", "tour.destination"})
     List<Booking> findByUserIdOrderByCreatedAtDesc(UUID userId);
-
-    /** Unpaid bookings whose seat hold is still running. */
-    long countByUserIdAndStatusAndExpiresAtAfter(UUID userId, Booking.Status status, Instant now);
 
     @Modifying
     @Query("""
