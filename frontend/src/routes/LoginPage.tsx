@@ -12,7 +12,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
-  const from = (location.state as { from?: Location } | null)?.from?.pathname ?? "/";
+  // Where a protected page sent the user from, if anywhere.
+  const from = (location.state as { from?: Location } | null)?.from?.pathname;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +29,7 @@ export default function LoginPage() {
       toast.success(`Welcome back, ${user.firstName}`, {
         description: "Your journeys are waiting.",
       });
-      navigate(from, { replace: true });
+      navigate(from ?? (user.role === "ADMIN" ? "/admin" : "/"), { replace: true });
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : "Something went wrong";

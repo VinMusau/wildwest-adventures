@@ -165,6 +165,11 @@ export default function AdminTourEditPage() {
           setNewDate("");
           setNewCapacity(8);
         },
+        onError: (err) => {
+          toast.error("Could not add date", {
+            description: err instanceof ApiError ? err.message : "Please try again.",
+          });
+        },
       },
     );
   };
@@ -333,9 +338,12 @@ export default function AdminTourEditPage() {
               initialImage={form.imageUrl}
               onUploadSuccess={(url) => updateField("imageUrl", url)}
             />
+            {/* Hidden: only here so the browser requires a cover image before saving. */}
             <input
               type="text"
               value={form.imageUrl}
+              onChange={(e) => updateField("imageUrl", e.target.value)}
+              aria-hidden="true"
               required
               style={{
                 opacity: 0,
@@ -521,7 +529,13 @@ export default function AdminTourEditPage() {
                     className="nav-link-btn danger"
                     onClick={() => {
                       if (window.confirm("Remove this date?"))
-                        deleteAvailability.mutate(a.id);
+                        deleteAvailability.mutate(a.id, {
+                          onError: (err) => {
+                            toast.error("Could not remove date", {
+                              description: err instanceof ApiError ? err.message : "Please try again.",
+                            });
+                          },
+                        });
                     }}
                     disabled={a.booked > 0}
                   >

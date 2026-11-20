@@ -2431,6 +2431,7 @@ a.logo {
 .status-confirmed { background: #dfeee5; color: #2f6b4a; }
 .status-cancelled { background: #f4e4e4; color: #8b3a3a; }
 .status-expired   { background: #eceae5; color: #6b6560; }
+.status-needs-refund { background: #fdf0c8; color: #7a5a00; margin-left: 6px; }
 @media (max-width: 720px) {
   .booking-row { grid-template-columns: 1fr; text-align: left; }
   .booking-row img { width: 100%; height: 180px; }
