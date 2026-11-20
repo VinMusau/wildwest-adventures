@@ -26,7 +26,9 @@ async function request<T>(
     Accept: "application/json",
     ...(init.headers as Record<string, string> | undefined),
   };
-  if (init.body && !headers["Content-Type"]) {
+  // FormData bodies must not get an explicit Content-Type: the browser sets
+  // multipart/form-data with the correct boundary itself.
+  if (init.body && !(init.body instanceof FormData) && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
   }
   if (token) {
@@ -77,6 +79,10 @@ export function apiPost<T>(path: string, body: unknown): Promise<T> {
 
 export function apiPut<T>(path: string, body: unknown): Promise<T> {
   return request<T>(path, { method: "PUT", body: JSON.stringify(body) });
+}
+
+export function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  return request<T>(path, { method: "POST", body: formData });
 }
 
 export function apiDelete<T>(path: string): Promise<T> {
