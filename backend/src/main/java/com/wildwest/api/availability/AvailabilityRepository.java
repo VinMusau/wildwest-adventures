@@ -14,6 +14,24 @@ import java.util.UUID;
 
 public interface AvailabilityRepository extends JpaRepository<Availability, UUID> {
 
+    /**
+     * Creates the availability row for an on-request tour's date unless it already exists.
+     * ON CONFLICT makes two simultaneous first bookings for a date safe.
+     */
+    @Modifying
+    @Query(value = """
+        insert into availability (id, tour_id, departure_date, capacity, booked, currency, status,
+                                  created_at, updated_at, version)
+        values (gen_random_uuid(), :tourId, :date, :capacity, 0, :currency, 'OPEN', now(), now(), 0)
+        on conflict (tour_id, departure_date) do nothing
+        """, nativeQuery = true)
+    void insertOnRequestDateIfMissing(
+            @Param("tourId") UUID tourId,
+            @Param("date") LocalDate date,
+            @Param("capacity") int capacity,
+            @Param("currency") String currency
+    );
+
     @Query("""
         select a from Availability a
         join fetch a.tour t
