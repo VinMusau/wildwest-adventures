@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
 public class BookingService {
 
     private static final int HOLD_MINUTES = 20;
+    private static final int ON_REQUEST_MAX_GROUP = 8;
 
     private final BookingRepository bookingRepository;
     private final AvailabilityRepository availabilityRepository;
@@ -40,17 +42,28 @@ public class BookingService {
         Tour tour = tourRepository.findBySlug(request.tourSlug())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tour not found"));
 
+        if (request.departureDate().isBefore(LocalDate.now())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "That departure date has already passed");
+        }
+
+        int travelersCount = request.travelers().size();
         Availability availability;
 
         if ("ON_REQUEST".equals(tour.getTourType())) {
-            availability = new Availability();
-            availability.setTour(tour);
-            availability.setDepartureDate(request.departureDate());
-            availability.setCapacity(8);
-            availability.setBooked(0);
-            availability.setStatus("OPEN");
-            availability.setCurrency(tour.getCurrency());
-            availability = availabilityRepository.save(availability);
+            // Each on-request booking is its own private group, so several groups can pick
+            // the same date. The bookings for a date share one availability row (the table
+            // allows one per tour and date); its capacity grows to fit each new group.
+            if (travelersCount > ON_REQUEST_MAX_GROUP) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "On-request journeys take up to " + ON_REQUEST_MAX_GROUP + " travelers per booking");
+            }
+            availabilityRepository.insertOnRequestDateIfMissing(
+                    tour.getId(), request.departureDate(), ON_REQUEST_MAX_GROUP, tour.getCurrency());
+            availability = availabilityRepository
+                    .lockForUpdate(request.tourSlug(), request.departureDate())
+                    .orElseThrow();
+            availability.setCapacity(Math.max(availability.getCapacity(), availability.getBooked() + travelersCount));
         } else {
             availability = availabilityRepository
                     .lockForUpdate(request.tourSlug(), request.departureDate())
@@ -62,7 +75,6 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Departure is not open");
         }
 
-        int travelersCount = request.travelers().size();
         if (availability.remaining() < travelersCount) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,

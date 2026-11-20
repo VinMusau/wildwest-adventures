@@ -3,6 +3,7 @@ package com.wildwest.api.availability;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -36,6 +37,24 @@ public interface AvailabilityRepository extends JpaRepository<Availability, UUID
     Optional<Availability> lockForUpdate(
             @Param("slug") String slug,
             @Param("date") LocalDate date
+    );
+
+    /**
+     * Creates the availability row for an on-request tour's date unless it already exists.
+     * ON CONFLICT makes two simultaneous first bookings for a date safe.
+     */
+    @Modifying
+    @Query(value = """
+        insert into availability (id, tour_id, departure_date, capacity, booked, currency, status,
+                                  created_at, updated_at, version)
+        values (gen_random_uuid(), :tourId, :date, :capacity, 0, :currency, 'OPEN', now(), now(), 0)
+        on conflict (tour_id, departure_date) do nothing
+        """, nativeQuery = true)
+    void insertOnRequestDateIfMissing(
+            @Param("tourId") UUID tourId,
+            @Param("date") LocalDate date,
+            @Param("capacity") int capacity,
+            @Param("currency") String currency
     );
 
     List<Availability> findByTourSlugOrderByDepartureDateAsc(String slug);
