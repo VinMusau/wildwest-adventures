@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import Logo from "./Logo";
+import { useToday } from "@/lib/useToday";
 
 const columns = [
   {
@@ -28,6 +29,7 @@ const columns = [
 ];
 
 export default function Footer() {
+  const year = useToday().slice(0, 4);
   return (
     <footer>
       <div className="footer-top">
@@ -89,7 +91,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom">
-        <span>© {new Date().getFullYear()} Wild West Adventures</span>
+        <span>© {year} Wild West Adventures</span>
         <span>
           <Link to="/privacy">Privacy</Link> · <Link to="/cookies">Cookies</Link> ·{" "}
           <Link to="/terms">Terms</Link>

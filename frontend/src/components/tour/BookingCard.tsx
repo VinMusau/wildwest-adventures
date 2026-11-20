@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import Icon from "@/components/ui/Icon";
+import { useToday } from "@/lib/useToday";
 
 interface BookingCardProps {
   priceFrom: string;
@@ -21,8 +22,8 @@ export default function BookingCard({ priceFrom, bookHref }: BookingCardProps) {
   params.set("guests", guests.toString());
   const finalHref = `${bookHref}?${params.toString()}`;
 
-  // Get today's date in YYYY-MM-DD format for the "min" attribute
-  const today = new Date().toISOString().split("T")[0];
+  // Today's date in YYYY-MM-DD format for the "min" attribute
+  const today = useToday();
 
   return (
     <aside className="booking-card">

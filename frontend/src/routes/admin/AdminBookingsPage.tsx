@@ -48,8 +48,6 @@ export default function AdminBookingsPage() {
 
   const { data, isLoading } = useAdminBookings(filters);
   const { data: tours = [] } = useTours();
-  const toast = useToast();
-  const confirmModal = useConfirm();
 
   const bookings = data?.content ?? [];
   const total = data?.totalElements ?? 0;

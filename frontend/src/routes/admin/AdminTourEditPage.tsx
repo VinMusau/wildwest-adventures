@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import ImageUploader from "@/components/admin/ImageUploader"; // Assuming you created this
-import { useTour } from "@/features/tours/useTour";
 import { useDestinations } from "@/features/destinations/useDestinations";
 import { useTravelStyles } from "@/features/travel-styles/useTravelStyles";
 import {
@@ -15,6 +14,7 @@ import { ApiError } from "@/lib/api";
 import type { AdminItineraryDay, TourWriteInput } from "@/types";
 import { useToast } from "@/features/toast/useToast";
 import { useAdminAvailability, useAddAvailability, useDeleteAvailability } from "@/features/admin/useAdminAvailability";
+import { useToday } from "@/lib/useToday";
 
 const EMPTY: TourWriteInput = {
   title: "",
@@ -37,6 +37,7 @@ const EMPTY: TourWriteInput = {
 };
 
 export default function AdminTourEditPage() {
+  const today = useToday();
   const { slug } = useParams<{ slug: string }>();
   const isNew = slug === "new" || !slug;
   const navigate = useNavigate();
@@ -61,9 +62,13 @@ export default function AdminTourEditPage() {
   const addAvailability = useAddAvailability(slug || "");
   const deleteAvailability = useDeleteAvailability(slug || "");
 
-  useEffect(() => {
-    if (existing) {
-      setForm({
+  // Fill the form when the tour loads (and if it's refetched with new data).
+  // Done during render rather than in an effect, as React recommends for
+  // state derived from props: https://react.dev/learn/you-might-not-need-an-effect
+  const [loadedTour, setLoadedTour] = useState<typeof existing>(undefined);
+  if (existing && existing !== loadedTour) {
+    setLoadedTour(existing);
+    setForm({
         title: existing.title,
         slug: existing.slug,
         place: existing.place,
@@ -86,11 +91,10 @@ export default function AdminTourEditPage() {
           mealsIncluded: d.mealsIncluded ?? "",
         })),
         inclusions: existing.inclusions,
-        tourType: existing.tourType || "SCHEDULED", // <-- Added
-      });
-      setPriceUsd((existing.priceCents / 100).toString());
-    }
-  }, [existing]);
+      tourType: existing.tourType || "SCHEDULED",
+    });
+    setPriceUsd((existing.priceCents / 100).toString());
+  }
 
   const updateField = <K extends keyof TourWriteInput>(
     key: K,
@@ -482,7 +486,7 @@ export default function AdminTourEditPage() {
             <input
               type="date"
               value={newDate}
-              min={new Date().toISOString().split("T")[0]}
+              min={today}
               onChange={(e) => setNewDate(e.target.value)}
             />
             <input

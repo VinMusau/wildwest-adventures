@@ -23,16 +23,13 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Only loading if there's a stored token to check.
+  const [loading, setLoading] = useState(() => tokenStorage.get() !== null);
   const toast = useToast();
 
   // On mount: if a token exists, try to fetch the current user
   useEffect(() => {
-    const token = tokenStorage.get();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    if (!tokenStorage.get()) return;
     
     authApi
       .me()

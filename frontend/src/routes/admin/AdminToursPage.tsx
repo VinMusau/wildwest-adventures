@@ -1,5 +1,4 @@
 import { Link } from "react-router";
-import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
 import { useAdminTours, useDeleteTour } from "@/features/admin/useAdminTours";
 import { formatPrice } from "@/lib/format";

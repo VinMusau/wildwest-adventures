@@ -1,4 +1,4 @@
-import { Link, useLocation, useParams } from "react-router";
+import { Link, useLocation } from "react-router";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import Icon from "@/components/ui/Icon";

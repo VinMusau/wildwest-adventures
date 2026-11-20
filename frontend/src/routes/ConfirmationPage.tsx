@@ -1,6 +1,5 @@
 import { Link, useParams } from "react-router";
 import Nav from "@/components/layout/Nav";
-import Footer from "@/components/layout/Footer";
 import Icon from "@/components/ui/Icon";
 import { useBooking } from "@/features/booking/useBooking";
 import { formatPrice } from "@/lib/format";

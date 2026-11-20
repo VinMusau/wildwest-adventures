@@ -16,6 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/api";
 import { useToast } from "@/features/toast/useToast";
 import AvailabilitySkeleton from "../features/booking/AvailabilitySkeleton";
+import { useToday } from "@/lib/useToday";
 
 const STEPS = ["Dates & travellers", "Your details", "Make it yours", "Review & pay"];
 
@@ -40,6 +41,7 @@ interface Draft {
 }
 
 export default function BookingPage() {
+  const today = useToday();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -236,7 +238,7 @@ export default function BookingPage() {
                       <input
                         type="date"
                         value={draft.departureDate || ""}
-                        min={new Date().toISOString().split("T")[0]}
+                        min={today}
                         onChange={(e) =>
                           setDraft((prev) => ({ ...prev, departureDate: e.target.value }))
                         }
