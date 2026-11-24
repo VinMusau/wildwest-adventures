@@ -4099,6 +4099,12 @@ a.style-card {
     gap: 12px;
   }
 
+  /* Pages with the fixed mobile booking bar (tour page): sit just above it
+     (72px bar + 16px gap) instead of covering its "Check availability" button. */
+  body:has(.mobile-book) .whatsapp-container {
+    bottom: 88px;
+  }
+
   .whatsapp-tooltip {
     padding: 6px 12px;
     font-size: 13px;
