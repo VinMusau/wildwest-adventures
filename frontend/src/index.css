@@ -4377,6 +4377,146 @@ a.style-card {
   text-align: center;
 }
 
+/* ---------- Gallery uploader (admin) ---------- */
+.gallery-uploader {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.gallery-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.gallery-item {
+  display: grid;
+  gap: 6px;
+}
+
+.gallery-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.gallery-thumb img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-position {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  min-width: 22px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.gallery-item input {
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.gallery-item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.gallery-item-actions button {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--white);
+  cursor: pointer;
+}
+
+.gallery-item-actions button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.gallery-item-actions .gallery-remove {
+  margin-left: auto;
+  color: #8b3a3a;
+}
+
+.gallery-add {
+  cursor: pointer;
+  border: 1px solid var(--ink);
+}
+
+.gallery-add.disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.gallery-errors {
+  margin: 0;
+  padding-left: 18px;
+}
+
+/* ---------- All-photos viewer (tour page) ---------- */
+.photo-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(20, 20, 18, 0.94);
+  overflow-y: auto;
+  padding: 72px 16px 40px;
+}
+
+.photo-viewer-close {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: white;
+  cursor: pointer;
+}
+
+.photo-viewer-list {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 1000px;
+  display: grid;
+  gap: 16px;
+}
+
+.photo-viewer-list img {
+  border-radius: 8px;
+}
+
+.photo-viewer-list figcaption {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
 /* ---------- Admin Availability Manager ---------- */
 .admin-availability-add {
   display: flex;

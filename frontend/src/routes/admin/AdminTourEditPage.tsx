@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import Button from "@/components/ui/Button";
 import Icon from "@/components/ui/Icon";
-import ImageUploader from "@/components/admin/ImageUploader"; // Assuming you created this
+import ImageUploader from "@/components/admin/ImageUploader";
+import GalleryUploader from "@/components/admin/GalleryUploader";
 import { useDestinations } from "@/features/destinations/useDestinations";
 import { useTravelStyles } from "@/features/travel-styles/useTravelStyles";
 import {
@@ -35,7 +36,8 @@ const EMPTY: TourWriteInput = {
   styleSlugs: [],
   itinerary: [],
   inclusions: [],
-  tourType: "SCHEDULED", // <-- Added
+  tourType: "SCHEDULED",
+  images: [],
 };
 
 export default function AdminTourEditPage() {
@@ -94,6 +96,7 @@ export default function AdminTourEditPage() {
       })),
       inclusions: existing.inclusions,
       tourType: existing.tourType || "SCHEDULED",
+      images: existing.images ?? [],
     });
     setPriceUsd((existing.priceCents / 100).toString());
   }
@@ -367,6 +370,22 @@ export default function AdminTourEditPage() {
                 pointerEvents: "none",
               }}
               tabIndex={-1}
+            />
+          </div>
+          <div className="wide">
+            <label
+              style={{
+                display: "block",
+                fontSize: "11px",
+                fontWeight: 600,
+                marginBottom: "6px",
+              }}
+            >
+              Gallery photos
+            </label>
+            <GalleryUploader
+              images={form.images}
+              onChange={(images) => updateField("images", images)}
             />
           </div>
           <label className="checkbox">

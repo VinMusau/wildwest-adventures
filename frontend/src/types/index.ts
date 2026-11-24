@@ -235,6 +235,8 @@ export interface AdminTourDetail {
   itinerary: AdminItineraryDay[];
   inclusions: string[];
   tourType: "SCHEDULED" | "ON_REQUEST";
+  /** Gallery photos, in display order. */
+  images: TourImage[];
 }
 
 export interface TourWriteInput {
@@ -253,6 +255,8 @@ export interface TourWriteInput {
   itinerary: AdminItineraryDay[];
   inclusions: string[];
   tourType: "SCHEDULED" | "ON_REQUEST";
+  /** Gallery photos, in display order. */
+  images: TourImage[];
 }
 
 export interface BookingAdminSummary {
