@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiUpload } from "@/lib/api";
+import { uploadTourImage } from "@/lib/uploadImage";
 
 interface ImageUploaderProps {
   onUploadSuccess: (url: string) => void;
@@ -18,29 +18,14 @@ export default function ImageUploader({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Basic frontend validation
-    if (file.size > 5 * 1024 * 1024) {
-      setError("File is too large. Max 5MB.");
-      return;
-    }
-
     setUploading(true);
     setError(null);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      // AdminTourController: POST /api/v1/admin/tours/upload-image -> { url }
-      const data = await apiUpload<{ url: string }>(
-        "/v1/admin/tours/upload-image",
-        formData,
-      );
-      setPreview(data.url);
-      onUploadSuccess(data.url);
-    } catch {
-      // A 401 is already handled by the shared client (AUTH_EXPIRED_EVENT).
-      setError("Failed to upload image. Please try again.");
+      const url = await uploadTourImage(file);
+      setPreview(url);
+      onUploadSuccess(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
       setUploading(false);
     }

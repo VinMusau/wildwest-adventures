@@ -11,6 +11,7 @@ import { useTour } from "@/features/tours/useTour";
 import { useTours } from "@/features/tours/useTours";
 import { formatPrice } from "@/lib/format";
 import TourDetailSkeleton from "@/components/tour/TourDetailSkeleton";
+import PhotoViewer from "@/components/tour/PhotoViewer";
 import ReviewCard from "@/components/review/ReviewCard";
 import { useTourReviews } from "@/features/reviews/useReviews";
 
@@ -18,6 +19,7 @@ export default function TourDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: tour, isLoading, error } = useTour(slug);
   const [openDay, setOpenDay] = useState<number>(1);
+  const [showAllPhotos, setShowAllPhotos] = useState(false);
   const { data: reviews = [] } = useTourReviews(slug);
 
   const { data: related = [] } = useTours(
@@ -104,9 +106,18 @@ export default function TourDetailPage() {
           <img key={i} src={img.imageUrl} alt={img.altText ?? tour.title} />
         ))}
         {tour.images.length > 3 && (
-          <button>View all {tour.images.length} photos</button>
+          <button onClick={() => setShowAllPhotos(true)}>
+            View all {tour.images.length} photos
+          </button>
         )}
       </section>
+      {showAllPhotos && (
+        <PhotoViewer
+          title={tour.title}
+          images={tour.images}
+          onClose={() => setShowAllPhotos(false)}
+        />
+      )}
 
       <div className="detail-layout">
         <div className="detail-main">
