@@ -13,6 +13,7 @@ import com.wildwest.api.destination.DestinationRepository;
 import com.wildwest.api.tour.*;
 import com.wildwest.api.travelstyle.TravelStyle;
 import com.wildwest.api.travelstyle.TravelStyleRepository;
+import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.*;
@@ -110,8 +111,9 @@ public class AdminTourService {
         tour.setDurationDays(req.durationDays());
         tour.setPriceCents(req.priceCents());
         tour.setCurrency(req.currency().toUpperCase());
-        tour.setRating(req.rating());
-        tour.setReviewCount(req.reviewCount());
+        // rating and reviewCount come from approved reviews (ReviewService), not the form.
+        if (tour.getRating() == null) tour.setRating(BigDecimal.ZERO.setScale(1));
+        if (tour.getReviewCount() == null) tour.setReviewCount(0);
         tour.setTag(req.tag().trim());
         tour.setImageUrl(req.imageUrl().trim());
         tour.setFeatured(req.featured());

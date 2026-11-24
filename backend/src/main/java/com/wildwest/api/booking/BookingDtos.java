@@ -84,8 +84,16 @@ public final class BookingDtos {
             Instant expiresAt,
             Instant createdAt,
             List<TravelerDto> travelers,
-            List<AddonDto> addons) {
+            List<AddonDto> addons,
+            // true when the trip has ended and the customer hasn't reviewed it yet
+            boolean canReview,
+            // PENDING, APPROVED or REJECTED once the customer has reviewed the trip; else null
+            String reviewStatus) {
         public static BookingDto from(Booking booking) {
+            return from(booking, false, null);
+        }
+
+        public static BookingDto from(Booking booking, boolean canReview, String reviewStatus) {
             return new BookingDto(
                     booking.getId(),
                     booking.getReference(),
@@ -109,7 +117,9 @@ public final class BookingDtos {
                     booking.getExpiresAt(),
                     booking.getCreatedAt(),
                     booking.getTravelers().stream().map(TravelerDto::from).toList(),
-                    booking.getAddons().stream().map(AddonDto::from).toList());
+                    booking.getAddons().stream().map(AddonDto::from).toList(),
+                    canReview,
+                    reviewStatus);
         }
     }
 }
