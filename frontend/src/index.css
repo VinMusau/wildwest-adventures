@@ -870,6 +870,12 @@ footer .logo-img {
   transform: translateY(-2px);
 }
 
+/* Override the global `img { width: 100% }`. */
+.socials img {
+  width: 18px;
+  height: 18px;
+}
+
 .footer-col {
   display: flex;
   flex-direction: column;
