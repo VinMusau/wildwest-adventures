@@ -3,6 +3,7 @@ import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import Icon from "@/components/ui/Icon";
 import { photos } from "@/data/mock";
+import { useReviewSummary } from "@/features/reviews/useReviews";
 
 const VALUES: Array<[string, string]> = [
   [
@@ -27,6 +28,10 @@ const GUIDES: Array<[string, string, string]> = [
 ];
 
 export default function StoryPage() {
+  // The rating tile shows only real, approved reviews.
+  const { data: summary } = useReviewSummary();
+  const hasRating = !!summary && summary.count > 0;
+
   return (
     <main className="light-page">
       <Nav />
@@ -101,7 +106,7 @@ export default function StoryPage() {
       </section>
 
       <section className="story-stats">
-        <div className="story-stats-inner">
+        <div className={`story-stats-inner${hasRating ? "" : " three"}`}>
           <div>
             <strong>18</strong>
             <span>Years in the field</span>
@@ -110,10 +115,15 @@ export default function StoryPage() {
             <strong>2,400+</strong>
             <span>Journeys designed</span>
           </div>
-          <div>
-            <strong>4.9/5</strong>
-            <span>Average guest rating</span>
-          </div>
+          {hasRating && (
+            <div>
+              <strong>{summary.averageRating}/5</strong>
+              <span>
+                Average of {summary.count} verified{" "}
+                {summary.count === 1 ? "review" : "reviews"}
+              </span>
+            </div>
+          )}
           <div>
             <strong>100%</strong>
             <span>Carbon offset</span>

@@ -783,6 +783,13 @@ h2 {
   margin-top: 18px;
 }
 
+.quote-tour {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .newsletter {
   background: #ded0bd;
   display: grid;
@@ -1215,6 +1222,166 @@ footer .logo-img {
 .content-section > p {
   color: var(--muted);
   font-size: 16px;
+}
+
+/* ---------- Reviews ---------- */
+.stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.stars .star-on {
+  color: var(--terracotta);
+}
+
+/* Earned stars are filled, not just outlined. */
+.stars .star-on svg,
+.star-picker .star-on svg {
+  fill: currentColor;
+}
+
+.stars .star-off {
+  color: var(--line);
+}
+
+.review-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.review-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.review-card h3 {
+  font-family: var(--serif);
+  font-size: 22px;
+  margin: 12px 0 8px;
+}
+
+.review-card p {
+  margin: 8px 0 16px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.review-card .review-meta {
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.review-card .review-meta strong {
+  color: var(--ink);
+}
+
+.review-form {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  margin-top: -12px;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.review-form h3 {
+  font-family: var(--serif);
+  font-size: 24px;
+  margin: 0;
+}
+
+.review-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.review-form input,
+.review-form textarea {
+  font: inherit;
+  font-weight: 400;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.review-form-count {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.review-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.star-picker {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.star-picker legend {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.star-picker button {
+  background: none;
+  border: 0;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.star-picker .star-on {
+  color: var(--terracotta);
+}
+
+.star-picker .star-off {
+  color: var(--line);
+}
+
+.review-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.admin-review-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.verified-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dfeee5;
+  color: #2f6b4a;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .highlights {
@@ -3464,6 +3631,12 @@ a.style-card {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 40px;
+}
+/* Three stats when there's no review rating to show yet (desktop only). */
+@media (min-width: 1025px) {
+  .story-stats-inner.three {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 .story-stats-inner > div {
   border-left: 1px solid rgba(255, 255, 255, 0.18);

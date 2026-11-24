@@ -22,6 +22,7 @@ import AdminToursPage from "@/routes/admin/AdminToursPage";
 import AdminTourEditPage from "@/routes/admin/AdminTourEditPage";
 import AdminBookingsPage from "@/routes/admin/AdminBookingsPage";
 import AdminCustomersPage from "@/routes/admin/AdminCustomersPage";
+import AdminReviewsPage from "@/routes/admin/AdminReviewsPage";
 
 import { AuthProvider } from "@/features/auth/AuthContext";
 import ProtectedRoute from "@/features/auth/ProtectedRoute";
@@ -115,6 +116,7 @@ function AppLayout() {
           <Route path="tours/:slug/edit" element={<AdminTourEditPage />} />
           <Route path="bookings" element={<AdminBookingsPage />} />
           <Route path="customers" element={<AdminCustomersPage />} />
+          <Route path="reviews" element={<AdminReviewsPage />} />
         </Route>
 
         {/* Root 404 Catch-all */}

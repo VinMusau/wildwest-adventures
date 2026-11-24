@@ -11,11 +11,14 @@ import { useTour } from "@/features/tours/useTour";
 import { useTours } from "@/features/tours/useTours";
 import { formatPrice } from "@/lib/format";
 import TourDetailSkeleton from "@/components/tour/TourDetailSkeleton";
+import ReviewCard from "@/components/review/ReviewCard";
+import { useTourReviews } from "@/features/reviews/useReviews";
 
 export default function TourDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: tour, isLoading, error } = useTour(slug);
   const [openDay, setOpenDay] = useState<number>(1);
+  const { data: reviews = [] } = useTourReviews(slug);
 
   const { data: related = [] } = useTours(
     tour ? { destination: tour.destinationSlug } : {},
@@ -89,7 +92,9 @@ export default function TourDetailPage() {
           <h1>{tour.title}</h1>
         </div>
         <div>
-          <Rating value={tour.rating.toFixed(1)} reviews={tour.reviewCount} />
+          {tour.reviewCount > 0 && (
+            <Rating value={tour.rating.toFixed(1)} reviews={tour.reviewCount} />
+          )}
           <p>{tour.durationDays} days · Private journey</p>
         </div>
       </section>
@@ -202,6 +207,18 @@ export default function TourDetailPage() {
               ))}
             </ul>
           </section>
+
+          {reviews.length > 0 && (
+            <section className="content-section">
+              <span className="eyebrow">From travellers who went</span>
+              <h2>Guest reviews</h2>
+              <div className="review-list">
+                {reviews.map((r) => (
+                  <ReviewCard key={r.id} review={r} />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         <BookingCard

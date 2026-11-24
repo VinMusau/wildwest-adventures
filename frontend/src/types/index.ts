@@ -127,6 +127,46 @@ export interface Booking {
   createdAt: string;
   travelers: BookingTraveler[];
   addons: BookingAddon[];
+  /** The trip has ended and the customer hasn't reviewed it yet. */
+  canReview: boolean;
+  /** Set once the customer has reviewed the trip. */
+  reviewStatus: ReviewStatus | null;
+}
+
+export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+/** A published review. */
+export interface Review {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  authorName: string;
+  authorCountry: string | null;
+  tourSlug: string;
+  tourTitle: string;
+  travelledOn: string;
+  createdAt: string;
+}
+
+export interface AdminReview extends Review {
+  status: ReviewStatus;
+  featured: boolean;
+  customerEmail: string;
+  bookingReference: string;
+  moderatedAt: string | null;
+}
+
+/** Average of approved reviews; averageRating is null when there are none. */
+export interface RatingSummary {
+  averageRating: number | null;
+  count: number;
+}
+
+export interface SubmitReviewInput {
+  rating: number;
+  title?: string;
+  body: string;
 }
 
 export interface CreateBookingInput {
@@ -205,8 +245,6 @@ export interface TourWriteInput {
   durationDays: number;
   priceCents: number;
   currency: string;
-  rating: number;
-  reviewCount: number;
   tag: string;
   imageUrl: string;
   featured: boolean;

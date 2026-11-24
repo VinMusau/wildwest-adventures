@@ -1,8 +1,11 @@
+import { Link } from "react-router";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import Icon from "@/components/ui/Icon";
 import Button from "@/components/ui/Button";
-import Rating from "@/components/ui/Rating";
+import Stars from "@/components/review/Stars";
+import { travelledLabel } from "@/components/review/ReviewCard";
+import { useFeaturedReview } from "@/features/reviews/useReviews";
 import SectionHead from "@/components/tour/SectionHead";
 import SearchBox from "@/components/tour/SearchBox";
 import TourCard from "@/components/tour/TourCard";
@@ -13,6 +16,7 @@ import { useTours } from "@/features/tours/useTours";
 import TourCardSkeleton from "@/components/tour/TourCardSkeleton";
 
 export default function HomePage() {
+  const { data: featuredReview } = useFeaturedReview();
   const scrollToStyles = () => {
     document.getElementById("styles")?.scrollIntoView({ behavior: "smooth" });
   };
@@ -165,19 +169,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="quote-section">
-        <span className="quote-mark">"</span>
-        <blockquote>
-          They didn't just show us The Maasai Mara. They made us feel part of
-          it.
-        </blockquote>
-        <p>
-          Every detail felt effortless, every day held something we could never
-          have planned ourselves.
-        </p>
-        <Rating value="5.0" />
-        <strong className="quote-name">THE MARSHALL FAMILY · LONDON</strong>
-      </section>
+      {/* A real, approved review an admin chose to feature. Hidden until there is one. */}
+      {featuredReview && (
+        <section className="quote-section">
+          <span className="quote-mark">"</span>
+          <blockquote>{featuredReview.title ?? featuredReview.body}</blockquote>
+          {featuredReview.title && <p>{featuredReview.body}</p>}
+          <Stars rating={featuredReview.rating} />
+          <strong className="quote-name">
+            {[featuredReview.authorName, featuredReview.authorCountry]
+              .filter(Boolean)
+              .join(" · ")
+              .toUpperCase()}
+          </strong>
+          <Link
+            to={`/journeys/${featuredReview.tourSlug}`}
+            className="quote-tour"
+          >
+            {featuredReview.tourTitle} · Travelled{" "}
+            {travelledLabel(featuredReview.travelledOn)}
+          </Link>
+        </section>
+      )}
 
       <section className="newsletter">
         <div>
