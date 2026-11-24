@@ -17,6 +17,11 @@ public final class AdminTourDtos {
             @Size(max = 200) String accommodation,
             @Size(max = 200) String mealsIncluded) {}
 
+    /** A gallery photo; the list's order is the display order. */
+    public record TourImageInput(
+            @NotBlank @Size(max = 500) String imageUrl,
+            @Size(max = 200) String altText) {}
+
     public record TourWriteRequest(
             @NotBlank @Size(max = 200) String title,
             @Size(max = 140) String slug, // optional, auto-generated from title
@@ -32,7 +37,9 @@ public final class AdminTourDtos {
             List<String> styleSlugs,
             List<@Valid ItineraryDayInput> itinerary,
             List<String> inclusions,
-            String tourType) {}
+            String tourType,
+            // Gallery photos in display order. Replaces the gallery; leave out (null) to keep it.
+            @Size(max = 30) List<@Valid TourImageInput> images) {}
 
     public record AvailabilityWriteRequest(
             @NotNull @FutureOrPresent LocalDate date,
@@ -67,5 +74,6 @@ public final class AdminTourDtos {
             List<String> styleSlugs,
             List<ItineraryDayInput> itinerary,
             List<String> inclusions,
-            String tourType) {}
+            String tourType,
+            List<TourImageInput> images) {}
 }

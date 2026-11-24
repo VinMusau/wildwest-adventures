@@ -4,6 +4,7 @@ import com.wildwest.api.admin.AdminTourDtos.AvailabilityWriteRequest;
 import com.wildwest.api.admin.AdminTourDtos.ItineraryDayInput;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminDetail;
 import com.wildwest.api.admin.AdminTourDtos.TourAdminSummary;
+import com.wildwest.api.admin.AdminTourDtos.TourImageInput;
 import com.wildwest.api.admin.AdminTourDtos.TourWriteRequest;
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityDto;
@@ -134,6 +135,9 @@ public class AdminTourService {
 
         tour.getItineraryDays().clear();
         tour.getInclusions().clear();
+        if (req.images() != null) {
+            tour.getImages().clear();
+        }
         if (tour.getId() != null) {
             // Hibernate runs inserts before orphan deletes when it flushes. Without this flush,
             // re-adding an existing day number violates UNIQUE (tour_id, day_number), so saving
@@ -165,6 +169,18 @@ public class AdminTourService {
                 tour.getInclusions().add(incl);
             }
         }
+
+        if (req.images() != null) {
+            int order = 1;
+            for (TourImageInput image : req.images()) {
+                TourImage entity = new TourImage();
+                entity.setTour(tour);
+                entity.setImageUrl(image.imageUrl().trim());
+                entity.setAltText(trimOrNull(image.altText()));
+                entity.setDisplayOrder(order++);
+                tour.getImages().add(entity);
+            }
+        }
     }
 
     private TourAdminSummary toSummary(Tour t) {
@@ -193,6 +209,11 @@ public class AdminTourService {
                 .map(TourInclusion::getLabel)
                 .toList();
 
+        List<TourImageInput> images = t.getImages().stream()
+                .sorted(Comparator.comparing(TourImage::getDisplayOrder))
+                .map(i -> new TourImageInput(i.getImageUrl(), i.getAltText()))
+                .toList();
+
         List<String> styleSlugs =
                 t.getStyles().stream().map(TravelStyle::getSlug).sorted().toList();
 
@@ -213,7 +234,8 @@ public class AdminTourService {
                 styleSlugs,
                 itinerary,
                 inclusions,
-                t.getTourType());
+                t.getTourType(),
+                images);
     }
 
     private static String slugify(String input) {
