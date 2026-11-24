@@ -25,8 +25,6 @@ public final class AdminTourDtos {
             @NotNull @Min(1) @Max(90) Integer durationDays,
             @NotNull @Min(0) Integer priceCents,
             @NotBlank @Size(min = 3, max = 3) String currency,
-            @NotNull @DecimalMin("0.0") @DecimalMax("5.0") BigDecimal rating,
-            @NotNull @Min(0) Integer reviewCount,
             @NotBlank @Size(max = 60) String tag,
             @NotBlank @Size(max = 500) String imageUrl,
             @NotNull Boolean featured,

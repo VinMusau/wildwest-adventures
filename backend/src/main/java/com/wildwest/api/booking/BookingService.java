@@ -3,6 +3,9 @@ package com.wildwest.api.booking;
 import com.wildwest.api.availability.Availability;
 import com.wildwest.api.availability.AvailabilityRepository;
 import com.wildwest.api.booking.BookingDtos.*;
+import com.wildwest.api.review.Review;
+import com.wildwest.api.review.ReviewRepository;
+import com.wildwest.api.review.ReviewService;
 import com.wildwest.api.tour.Tour;
 import com.wildwest.api.tour.TourRepository;
 import com.wildwest.api.user.User;
@@ -10,7 +13,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,14 +31,17 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final AvailabilityRepository availabilityRepository;
     private final TourRepository tourRepository;
+    private final ReviewRepository reviewRepository;
 
     public BookingService(
             BookingRepository bookingRepository,
             AvailabilityRepository availabilityRepository,
-            TourRepository tourRepository) {
+            TourRepository tourRepository,
+            ReviewRepository reviewRepository) {
         this.bookingRepository = bookingRepository;
         this.availabilityRepository = availabilityRepository;
         this.tourRepository = tourRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     /** How many unpaid bookings (seat holds) one customer may have at once. */
@@ -172,16 +181,31 @@ public class BookingService {
         booking.getTravelers().size();
         booking.getAddons().size();
 
-        return BookingDto.from(booking);
+        return withReviewInfo(List.of(booking)).get(0);
     }
 
     @Transactional(readOnly = true)
     public List<BookingDto> listMine(User user) {
-        return bookingRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
-                .map(booking -> {
-                    booking.getTravelers().size();
-                    booking.getAddons().size();
-                    return BookingDto.from(booking);
+        List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        bookings.forEach(booking -> {
+            booking.getTravelers().size();
+            booking.getAddons().size();
+        });
+        return withReviewInfo(bookings);
+    }
+
+    /** Adds whether each booking can be reviewed, and the status of its review if it has one. */
+    private List<BookingDto> withReviewInfo(List<Booking> bookings) {
+        Map<UUID, Review.Status> reviewStatus = new HashMap<>();
+        reviewRepository
+                .findByBookingIdIn(bookings.stream().map(Booking::getId).toList())
+                .forEach(r -> reviewStatus.put(r.getBooking().getId(), r.getStatus()));
+        LocalDate today = LocalDate.now();
+        return bookings.stream()
+                .map(b -> {
+                    Review.Status status = reviewStatus.get(b.getId());
+                    boolean canReview = status == null && ReviewService.tripEnded(b, today);
+                    return BookingDto.from(b, canReview, status == null ? null : status.name());
                 })
                 .toList();
     }

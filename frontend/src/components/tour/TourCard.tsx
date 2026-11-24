@@ -28,7 +28,9 @@ export default function TourCard({ tour }: TourCardProps) {
       <div className="tour-body">
         <div className="eyebrow-row">
           <span>{tour.place}</span>
-          <Rating value={tour.rating.toFixed(1)} reviews={tour.reviewCount} />
+          {tour.reviewCount > 0 && (
+            <Rating value={tour.rating.toFixed(1)} reviews={tour.reviewCount} />
+          )}
         </div>
         <h3>{tour.title}</h3>
         <div className="tour-meta">

@@ -29,6 +29,9 @@ export default function AdminLayout() {
           <NavLink to="/admin/customers" className={linkClass}>
             Customers
           </NavLink>
+          <NavLink to="/admin/reviews" className={linkClass}>
+            Reviews
+          </NavLink>
         </nav>
 
         <div className="admin-sidebar-foot">

@@ -3,7 +3,9 @@ import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { useMyBookings } from "@/features/booking/useBooking";
 import { formatPrice } from "@/lib/format";
-import type { BookingStatus } from "@/types";
+import type { BookingStatus, ReviewStatus } from "@/types";
+import ReviewForm from "@/components/review/ReviewForm";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "@/lib/api";
 import BookingRowSkeleton from "@/components/tour/BookingRowSkeleton";
@@ -15,9 +17,17 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
   EXPIRED: "Expired",
 };
 
+const REVIEW_NOTE: Record<ReviewStatus, string> = {
+  PENDING: "Review sent · awaiting approval",
+  APPROVED: "Your review is published",
+  REJECTED: "Review not published",
+};
+
 export default function MyBookingsPage() {
   const { data: bookings = [], isLoading } = useMyBookings();
   const queryClient = useQueryClient();
+  // Booking reference whose review form is open.
+  const [reviewing, setReviewing] = useState<string | null>(null);
 
   return (
     <main className="light-page">
@@ -55,57 +65,82 @@ export default function MyBookingsPage() {
         ) : (
           <div className="bookings-list">
             {bookings.map((b) => (
-              <article className="booking-row" key={b.id}>
-                <img src={b.tourImageUrl} alt={b.tourTitle} />
-                <div className="booking-row-body">
-                  <div className="eyebrow-row">
-                    <span>{b.reference}</span>
-                    <span
-                      className={`status-badge status-${b.status.toLowerCase()}`}
-                    >
-                      {STATUS_LABEL[b.status]}
-                    </span>
+              <div key={b.id}>
+                <article className="booking-row">
+                  <img src={b.tourImageUrl} alt={b.tourTitle} />
+                  <div className="booking-row-body">
+                    <div className="eyebrow-row">
+                      <span>{b.reference}</span>
+                      <span
+                        className={`status-badge status-${b.status.toLowerCase()}`}
+                      >
+                        {STATUS_LABEL[b.status]}
+                      </span>
+                    </div>
+                    <h3>{b.tourTitle}</h3>
+                    <p className="text-muted">
+                      {b.tourPlace} ·{" "}
+                      {new Date(b.departureDate).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}{" "}
+                      · {b.travelersCount}{" "}
+                      {b.travelersCount === 1 ? "traveller" : "travellers"}
+                    </p>
                   </div>
-                  <h3>{b.tourTitle}</h3>
-                  <p className="text-muted">
-                    {b.tourPlace} ·{" "}
-                    {new Date(b.departureDate).toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}{" "}
-                    · {b.travelersCount}{" "}
-                    {b.travelersCount === 1 ? "traveller" : "travellers"}
-                  </p>
-                </div>
 
-                <div className="booking-row-price">
-                  <span>{formatPrice(b.totalCents, b.currency)}</span>
-                  {b.status === "PENDING" && (
-                    <button
+                  <div className="booking-row-price">
+                    <span>{formatPrice(b.totalCents, b.currency)}</span>
+                    {b.status === "PENDING" && (
+                      <button
+                        className="text-link"
+                        onClick={async () => {
+                          try {
+                            await apiPost(
+                              `/v1/bookings/${b.reference}/verify-payment`,
+                              {},
+                            );
+                            queryClient.invalidateQueries({
+                              queryKey: ["bookings", "mine"],
+                            });
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }}
+                      >
+                        Verify payment
+                      </button>
+                    )}
+                    <Link
+                      to={`/confirmed/${b.reference}`}
                       className="text-link"
-                      onClick={async () => {
-                        try {
-                          await apiPost(
-                            `/v1/bookings/${b.reference}/verify-payment`,
-                            {},
-                          );
-                          queryClient.invalidateQueries({
-                            queryKey: ["bookings", "mine"],
-                          });
-                        } catch (e) {
-                          console.error(e);
-                        }
-                      }}
                     >
-                      Verify payment
-                    </button>
-                  )}
-                  <Link to={`/confirmed/${b.reference}`} className="text-link">
-                    View <IconArrow />
-                  </Link>
-                </div>
-              </article>
+                      View <IconArrow />
+                    </Link>
+                    {b.canReview && reviewing !== b.reference && (
+                      <button
+                        className="text-link"
+                        onClick={() => setReviewing(b.reference)}
+                      >
+                        Write a review
+                      </button>
+                    )}
+                    {b.reviewStatus && (
+                      <span className="review-note">
+                        {REVIEW_NOTE[b.reviewStatus]}
+                      </span>
+                    )}
+                  </div>
+                </article>
+                {reviewing === b.reference && (
+                  <ReviewForm
+                    bookingReference={b.reference}
+                    tourTitle={b.tourTitle}
+                    onDone={() => setReviewing(null)}
+                  />
+                )}
+              </div>
             ))}
           </div>
         )}
